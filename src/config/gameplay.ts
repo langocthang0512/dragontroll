@@ -16,8 +16,6 @@ export const GAMEPLAY_CONFIG = {
   deathDuration: 0.72,
   respawnDuration: 0.22,
   enemyPatrolSpeed: 42,
-  enemyProjectileSpeed: 135,
-  enemyShootCooldown: 1,
   trapTelegraphDuration: 0.65,
   trapGravity: 980,
   shopLifePrice: 50,

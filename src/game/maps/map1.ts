@@ -11,7 +11,6 @@ function enemy(id: string, x: number, patrolMin: number, patrolMax: number): Ene
     patrolMin, patrolMax,
     direction: 1,
     speed: GAMEPLAY_CONFIG.enemyPatrolSpeed,
-    shootCooldownRemaining: 0.4,
     alive: true,
     hitCount: 0,
     flashRemaining: 0,
@@ -99,6 +98,12 @@ export function createMap1(): PrototypeArea {
       hazard("ruin-egg-03", 4340),
       hazard("ruin-egg-04", 5150),
       hazard("ruin-egg-05", 6260),
+    ],
+    spikes: [
+      { id: "spikes-01", x: 3060, y: 482, w: 58, h: 18 },
+      { id: "spikes-02", x: 4380, y: 482, w: 64, h: 18 },
+      { id: "spikes-03", x: 5370, y: 482, w: 72, h: 18 },
+      { id: "spikes-04", x: 6410, y: 482, w: 64, h: 18 },
     ],
     goal: { id: "ancient-gate", x: 6900, y: 414, w: 78, h: 86 },
     sections: [

@@ -60,7 +60,7 @@ export class Game {
     this.unsubscribeState = this.state.subscribe((state) => this.syncCanvasState(state));
     this.syncCanvasState(this.state.snapshot);
     const characterRenderer = new CharacterRenderer(this.renderer.context, this.assets);
-    this.worldRenderer = new PrototypeWorldRenderer(this.renderer, characterRenderer);
+    this.worldRenderer = new PrototypeWorldRenderer(this.renderer, characterRenderer, this.assets);
     this.visualUI = new VisualUIRenderer(this.renderer, characterRenderer);
     this.transition = new ScreenTransition(this.renderer.context, GAME_CONFIG.width, GAME_CONFIG.height);
     this.gameplay = new PrototypeGameplaySystem(

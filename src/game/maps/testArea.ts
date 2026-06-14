@@ -29,6 +29,7 @@ export function createTestArea(): PrototypeArea {
     target: { id: "training-dummy", x: 1190, y: 438, w: 28, h: 62, hitCount: 0, flashRemaining: 0 },
     enemies: [],
     hazards: [],
+    spikes: [],
     goal: { id: "test-goal", x: 1800, y: 430, w: 40, h: 70 },
     sections: [{ id: "test", label: "TEST", startX: 0, endX: 1920 }],
     decorations: [],

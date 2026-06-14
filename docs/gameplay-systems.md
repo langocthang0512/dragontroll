@@ -2,7 +2,7 @@
 
 ## Playable Build V1 scope
 
-The active play scene is the complete Lost World Map 1. The original prototype systems now compose authored level data, moss drake enemies, pooled white-orb projectiles, telegraphed falling hazards, one persistent checkpoint, collectible gold, a final goal, victory flow, and the basic life shop. Map 2 and audio remain outside this milestone.
+The active play scene is the complete Lost World Map 1. The original prototype systems now compose authored level data, contact-based dragon enemies, telegraphed falling eggs, readable spike beds, one persistent checkpoint, collectible gold, a final goal, victory flow, and the basic life shop. Map 2 and audio remain outside this milestone.
 
 ## Controls
 
@@ -38,4 +38,4 @@ Schema v3 persists selected character, legacy level index, lives, gold, collecte
 
 ## QA
 
-`npm test` runs deterministic Vitest coverage for movement, combat targeting, enemy fire/defeat, hazard telegraph/drop/reset, Map 1 structure, life depletion, respawn transitions, checkpoint ownership, shop economy, gold deduplication, and save/reload behavior. Browser QA verifies the complete menu-to-victory flow, HUD pause, checkpoint reload, Game Over, shop purchase states, restart, and console cleanliness.
+`npm test` runs deterministic Vitest coverage for movement, combat targeting, enemy approach/contact/defeat, hazard telegraph/drop/reset, Map 1 structure, spike presence, life depletion, respawn transitions, checkpoint ownership, shop economy, gold deduplication, and save/reload behavior. Browser QA verifies animation loading, scale consistency, menu/play rendering, HUD pause, and console cleanliness.

@@ -70,10 +70,10 @@ export class CombatSystem {
 
   hitbox(player: Player): Rect {
     return {
-      x: player.face === 1 ? player.x + player.w - 2 : player.x - 38,
-      y: player.y + 8,
-      w: 40,
-      h: 30,
+      x: player.face === 1 ? player.x + player.w - 3 : player.x - 52,
+      y: player.y + 5,
+      w: 55,
+      h: 34,
     };
   }
 }

@@ -183,6 +183,10 @@ export class PrototypeGameplaySystem {
       this.applyDamage(hazardDamage);
       return;
     }
+    if (this.area.spikes.some((spike) => intersects(this.player, spike))) {
+      this.applyDamage("ANCIENT SPIKES  LIFE LOST");
+      return;
+    }
 
     const gained = this.gold.collect(this.player, this.area.gold);
     if (gained > 0) {

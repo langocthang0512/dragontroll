@@ -37,4 +37,8 @@ The third milestone replaced the active legacy play path with a modular internal
 
 ## Playable Build V1 milestone
 
-The fourth milestone promotes those systems into the complete Lost World Map 1 without changing the runtime architecture. Typed map data owns eight level sections, terrain, collectibles, enemy placements, hazards, decorations, checkpoint, and goal. `EnemySystem` uses a fixed projectile pool, while `FallingHazardSystem` owns explicit idle, telegraph, and falling states. Victory and shop are scenes, not gameplay-system branches, and the Canvas renderer culls world objects outside a padded viewport.
+The fourth milestone promotes those systems into the complete Lost World Map 1 without changing the runtime architecture. Typed map data owns eight level sections, terrain, collectibles, enemy placements, hazards, decorations, checkpoint, and goal. `EnemySystem` owns bounded patrol and close-range approach behavior, while `FallingHazardSystem` owns explicit idle, telegraph, and falling states. Victory and shop are scenes, not gameplay-system branches, and the Canvas renderer culls world objects outside a padded viewport.
+
+## Visual recovery milestone
+
+The recovery milestone leaves scene, save, movement, progression, and level ownership intact. It rebuilds the generated player atlas, Canvas world rendering, UI primitives, enemy presentation, and environmental materials. Ranged enemies were simplified to close-range approach/contact behavior to match their new visual language; spike beds reuse the existing generic damage flow. All visual animation is render-time only and does not mutate simulation state.

@@ -33,6 +33,10 @@ const requiredFiles = [
   "src/game/maps/testArea.ts",
   "assets/player/player-atlas.png",
   "assets/animation/player-atlas.json",
+  "assets/temp/visual-recovery-direction.webp",
+  "assets/temp/visual-recovery-character-study.webp",
+  "assets/environment/lost-world-panorama.webp",
+  "docs/art-direction-recovery.md",
 ];
 
 await Promise.all(requiredFiles.map((file) => access(file)));

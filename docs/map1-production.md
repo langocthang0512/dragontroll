@@ -8,9 +8,11 @@ The 7,200-pixel route is divided into eight authored sections: safe movement tut
 
 ## Enemies and hazards
 
-Moss drakes patrol bounded lanes, detect the player within twice their body width, and fire a reusable white-orb projectile on a one-second cooldown. One readable sword hit defeats a drake. Projectiles come from a fixed pool, so combat does not allocate new objects during play.
+Three visual families of small dragons patrol bounded lanes and approach when the player enters close range. They deal contact damage only; all ranged projectiles were removed during the visual recovery milestone. One readable sword hit defeats a dragon.
 
 Falling ruin eggs enter a telegraph state before dropping vertically. A highlighted lane and ground marker communicate the danger before gravity begins. Hazards reset and can be reused after reaching the floor.
+
+Carved spike beds add a second trap silhouette. Their pale metal points, red sockets, and dark stone bases make their collision area readable against the terrain.
 
 ## Progression
 

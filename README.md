@@ -1,6 +1,6 @@
 # Dragon Troll Island
 
-Dragon Troll Island is a browser platform game running on a modular TypeScript and Canvas 2D foundation. Playable Build V1 includes the complete Lost World Map 1, responsive movement and sword combat, patrolling projectile enemies, telegraphed falling hazards, checkpoint respawning, persistent gold, a basic life shop, Game Over, and victory flow.
+Dragon Troll Island is a browser platform game running on a modular TypeScript and Canvas 2D foundation. The Visual Recovery Build includes the complete Lost World Map 1 with high-fidelity modern pixel art, detailed player animation, contact-based dragon variants, falling egg and spike hazards, checkpoint respawning, persistent gold, a basic life shop, Game Over, and victory flow.
 
 ## Requirements
 
@@ -57,3 +57,4 @@ See `docs/architecture.md` for the audit and migration rationale.
 See `docs/visual-pipeline.md` for atlas ownership, animation timing, visual rules, and the character concept source prompt.
 See `docs/gameplay-systems.md` for the core loop, save schema, and extension rules.
 See `docs/map1-production.md` for Map 1 structure, enemy/hazard rules, progression, and shop behavior.
+See `docs/art-direction-recovery.md` for the recovered visual language, asset rules, and source studies.

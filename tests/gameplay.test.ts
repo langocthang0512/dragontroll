@@ -93,23 +93,28 @@ describe("map 1 production systems", () => {
     expect(map.sections).toHaveLength(8);
     expect(map.enemies.length).toBeGreaterThanOrEqual(5);
     expect(map.hazards.length).toBeGreaterThanOrEqual(4);
+    expect(map.spikes.length).toBeGreaterThanOrEqual(4);
     expect(map.checkpoints).toHaveLength(1);
     expect(map.gold.reduce((total, pickup) => total + pickup.value, 0)).toBeGreaterThanOrEqual(100);
     expect(map.goal.x).toBeGreaterThan(map.sections[6]!.startX);
   });
 
-  it("patrols, detects at two widths, fires pooled orbs, and supports defeat", () => {
+  it("patrols, approaches at close range, deals contact damage, and supports defeat", () => {
     const system = new EnemySystem();
     const player = createPlayer();
-    player.x = 100;
+    player.x = 90;
     player.y = 454;
     const enemy: EnemyEntity = {
       id: "drake", x: 154, y: 458, w: 38, h: 42,
-      patrolMin: 140, patrolMax: 190, direction: -1, speed: 0,
-      shootCooldownRemaining: 0, alive: true, hitCount: 0, flashRemaining: 0,
+      patrolMin: 140, patrolMax: 190, direction: -1, speed: GAMEPLAY_CONFIG.enemyPatrolSpeed,
+      alive: true, hitCount: 0, flashRemaining: 0,
     };
+    const previousX = enemy.x;
     expect(system.update([enemy], player, 1 / 60)).toBeUndefined();
-    expect(system.projectiles.some((projectile) => projectile.active)).toBe(true);
+    expect(enemy.x).toBeLessThan(previousX);
+    player.x = enemy.x;
+    player.y = enemy.y;
+    expect(system.update([enemy], player, 0)).toBe("DRAGON CONTACT  LIFE LOST");
     expect(system.defeat([enemy], "drake")).toBe(true);
     expect(enemy.alive).toBe(false);
   });

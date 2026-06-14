@@ -31,13 +31,11 @@ export interface EnemyEntity extends TrainingTarget {
   patrolMax: number;
   direction: -1 | 1;
   speed: number;
-  shootCooldownRemaining: number;
   alive: boolean;
 }
 
-export interface EnemyProjectile extends Rect {
-  active: boolean;
-  vx: number;
+export interface SpikeTrap extends Rect {
+  id: string;
 }
 
 export type FallingHazardState = "idle" | "telegraph" | "falling";
@@ -87,6 +85,7 @@ export interface PrototypeArea {
   target?: TrainingTarget;
   enemies: EnemyEntity[];
   hazards: FallingHazard[];
+  spikes: SpikeTrap[];
   goal: GoalObject;
   sections: LevelSection[];
   decorations: EnvironmentDecoration[];

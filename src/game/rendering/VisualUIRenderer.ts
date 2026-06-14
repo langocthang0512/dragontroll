@@ -21,10 +21,16 @@ export class VisualUIRenderer {
 
   menu(title: string, subtitle: string, options: readonly MenuOption[], selectedIndex: number, footer = "ARROWS TO MOVE   ENTER TO SELECT"): void {
     this.backdrop();
-    const { ui } = this.renderer;
+    const { ui, context } = this.renderer;
+    context.fillStyle = "rgba(240,195,90,.12)";
+    context.fillRect(180, 52, 600, 92);
+    context.fillStyle = "#8f7642";
+    context.fillRect(252, 146, 456, 3);
+    context.fillStyle = "#d8b95e";
+    context.fillRect(336, 146, 288, 2);
     ui.pixelText(title, 480, 76, 5, "#f0c35a", "center");
-    ui.pixelText(subtitle, 480, 130, 2, "#8fa8b8", "center");
-    ui.pixelPanel(310, 170, 340, 250, "#131e33", "#8a6c3d");
+    ui.pixelText(subtitle, 480, 130, 2, "#c7d9bd", "center");
+    ui.pixelPanel(310, 170, 340, 250, "rgba(12,34,39,.96)", "#a68a48");
     options.forEach((option, index) => {
       ui.pixelButton(option.label, 350, 198 + index * 58, 260, index === selectedIndex, option.disabled);
     });
@@ -143,21 +149,48 @@ export class VisualUIRenderer {
 
   private backdrop(): void {
     const context = this.renderer.context;
-    context.fillStyle = "#0c1324";
+    context.fillStyle = "#081923";
     context.fillRect(0, 0, 960, 540);
-    context.fillStyle = "#13213a";
-    context.fillRect(0, 280, 960, 260);
-    context.fillStyle = "#1b3049";
-    for (let x = -40; x < 1000; x += 96) {
-      const height = 64 + ((x / 96) % 3) * 18;
-      context.fillRect(x, 280 - height, 70, height);
-      context.fillRect(x + 18, 280 - height - 18, 34, 18);
+    context.fillStyle = "#0d3340";
+    context.fillRect(0, 82, 960, 458);
+    context.fillStyle = "#18534f";
+    context.fillRect(0, 198, 960, 342);
+    context.fillStyle = "#2f7160";
+    context.fillRect(0, 302, 960, 238);
+    context.fillStyle = "rgba(244,213,119,.08)";
+    for (let x = 70; x < 960; x += 230) {
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x + 52, 0);
+      context.lineTo(x + 150, 410);
+      context.lineTo(x + 112, 410);
+      context.fill();
     }
-    context.fillStyle = "#8fa8b8";
-    for (const [x, y] of [[80, 62], [146, 118], [820, 84], [744, 146], [906, 202], [48, 218]]) context.fillRect(x, y, 4, 4);
-    context.fillStyle = "#0a0f1c";
-    context.fillRect(0, 500, 960, 40);
-    context.fillStyle = "#263950";
-    for (let x = 0; x < 960; x += 32) context.fillRect(x, 500, 28, 4);
+    context.fillStyle = "#123f42";
+    for (let x = -80; x < 1040; x += 118) {
+      const height = 112 + ((x / 118) % 3) * 24;
+      context.fillRect(x + 36, 410 - height, 22, height);
+      context.fillRect(x, 410 - height, 92, 32);
+      context.fillStyle = "#24584e";
+      context.fillRect(x + 8, 405 - height, 76, 9);
+      context.fillStyle = "#123f42";
+    }
+    context.fillStyle = "#0a292f";
+    context.fillRect(0, 410, 960, 130);
+    context.fillStyle = "#19463e";
+    for (let x = -30; x < 990; x += 72) {
+      context.fillRect(x, 398 + (x % 3) * 3, 58, 22);
+      context.fillRect(x + 12, 386 + (x % 2) * 4, 18, 16);
+      context.fillRect(x + 38, 380 + (x % 4) * 2, 14, 22);
+    }
+    context.fillStyle = "#08191e";
+    context.fillRect(0, 506, 960, 34);
+    context.fillStyle = "#476255";
+    for (let x = 0; x < 960; x += 34) {
+      context.fillRect(x, 502, 30, 5);
+      context.fillStyle = "#78915f";
+      context.fillRect(x + 3, 501, 16, 2);
+      context.fillStyle = "#476255";
+    }
   }
 }

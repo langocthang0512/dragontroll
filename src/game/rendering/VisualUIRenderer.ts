@@ -32,7 +32,7 @@ export class VisualUIRenderer {
   }
 
   mainMenu(options: readonly MenuOption[], selectedIndex: number, variant: CharacterVariant, animator: SpriteAnimator): void {
-    this.menu("DRAGON TROLL ISLAND", "VISUAL FOUNDATION BUILD", options, selectedIndex);
+    this.menu("DRAGON TROLL ISLAND", "CORE GAMEPLAY PROTOTYPE", options, selectedIndex);
     this.characters.render(variant, animator, 210, 400, 1, 2);
     this.drawPedestal(210, 408);
   }
@@ -57,6 +57,16 @@ export class VisualUIRenderer {
     ui.pixelPanel(310, 160, 340, 250, "#131e33", "#8a6c3d");
     options.forEach((option, index) => ui.pixelButton(option.label, 350, 190 + index * 62, 260, index === selectedIndex));
     ui.pixelText("ESC TO RESUME", 480, 470, 2, "#8fa8b8", "center");
+  }
+
+  gameOver(options: readonly MenuOption[], selectedIndex: number, gold: number): void {
+    this.backdrop();
+    const { ui } = this.renderer;
+    ui.pixelText("GAME OVER", 480, 92, 5, "#f05b61", "center");
+    ui.pixelText(`RUN GOLD  ${gold}`, 480, 150, 2, "#f0c35a", "center");
+    ui.pixelPanel(310, 190, 340, 180, "#131e33", "#8a6c3d");
+    options.forEach((option, index) => ui.pixelButton(option.label, 350, 220 + index * 64, 260, index === selectedIndex));
+    ui.pixelText("RESTART RESETS RUN PROGRESS", 480, 430, 2, "#8fa8b8", "center");
   }
 
   placeholder(title: string, message: string): void {

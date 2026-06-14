@@ -1,6 +1,8 @@
 import type { CharacterVariant } from "../animation/types";
 
-export type GameMode = "loading" | "menu" | "settings" | "character" | "playing" | "paused";
+export type GameMode = "loading" | "menu" | "settings" | "character" | "playing" | "paused" | "gameOver";
+
+export type RunFlowState = "spawn" | "play" | "dying" | "respawn" | "gameOver";
 
 export interface GameState {
   mode: GameMode;
@@ -9,6 +11,9 @@ export interface GameState {
   message: string;
   levelCleared: boolean;
   selectedCharacter: CharacterVariant;
+  lives: number;
+  gold: number;
+  runFlow: RunFlowState;
 }
 
 type StateListener = (state: Readonly<GameState>) => void;

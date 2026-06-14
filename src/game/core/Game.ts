@@ -4,15 +4,14 @@ import { AssetLoader } from "../assets/AssetLoader";
 import { assetManifest } from "../assets/manifest";
 import { DebugTools } from "../debug/DebugTools";
 import { InputSystem } from "../input/InputSystem";
-import { levels } from "../maps/levels";
-import { MapLoader } from "../maps/MapLoader";
 import { PerformanceMonitor } from "../performance/PerformanceMonitor";
 import { CanvasRenderer } from "../rendering/CanvasRenderer";
 import { CharacterRenderer } from "../rendering/CharacterRenderer";
-import { LegacyWorldRenderer } from "../rendering/LegacyWorldRenderer";
+import { PrototypeWorldRenderer } from "../rendering/PrototypeWorldRenderer";
 import { VisualUIRenderer } from "../rendering/VisualUIRenderer";
 import { SaveManager } from "../save/SaveManager";
 import { CharacterSelectScene } from "../scenes/CharacterSelectScene";
+import { GameOverScene } from "../scenes/GameOverScene";
 import { LoadingScene } from "../scenes/LoadingScene";
 import { MainMenuScene } from "../scenes/MainMenuScene";
 import { PauseScene } from "../scenes/PauseScene";
@@ -21,7 +20,7 @@ import { PlayScene } from "../scenes/PlayScene";
 import { SceneManager } from "../scenes/SceneManager";
 import { SettingsScene } from "../scenes/SettingsScene";
 import { GameStateManager } from "../state/GameStateManager";
-import { LegacyGameplaySystem } from "../systems/LegacyGameplaySystem";
+import { PrototypeGameplaySystem } from "../systems/PrototypeGameplaySystem";
 import { ScreenTransition } from "../ui/ScreenTransition";
 import { GameLoop } from "./GameLoop";
 
@@ -29,8 +28,7 @@ export class Game {
   private readonly assets = new AssetLoader();
   private readonly input = new InputSystem();
   private readonly animations = new AnimationController();
-  private readonly maps = new MapLoader(levels);
-  private readonly saves = new SaveManager(this.maps.count);
+  private readonly saves = new SaveManager(5);
   private readonly savedGame = this.saves.load();
   private readonly state = new GameStateManager({
     mode: "loading",
@@ -39,43 +37,47 @@ export class Game {
     message: "Press ENTER to start",
     levelCleared: false,
     selectedCharacter: this.savedGame.selectedCharacter,
+    lives: this.savedGame.run.lives,
+    gold: this.savedGame.run.gold,
+    runFlow: this.savedGame.run.lives > 0 ? "spawn" : "gameOver",
   });
   private readonly renderer: CanvasRenderer;
-  private readonly worldRenderer: LegacyWorldRenderer;
+  private readonly worldRenderer: PrototypeWorldRenderer;
   private readonly visualUI: VisualUIRenderer;
-  private readonly gameplay: LegacyGameplaySystem;
+  private readonly gameplay: PrototypeGameplaySystem;
   private readonly scenes = new SceneManager();
   private readonly debug = new DebugTools();
   private readonly performance = new PerformanceMonitor();
   private readonly loop: GameLoop;
   private readonly transition: ScreenTransition;
   private readonly loadingScene: LoadingScene;
+  private readonly unsubscribeState: () => void;
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new CanvasRenderer(canvas);
+    this.input.attachPointer(canvas);
+    this.unsubscribeState = this.state.subscribe((state) => this.syncCanvasState(state));
+    this.syncCanvasState(this.state.snapshot);
     const characterRenderer = new CharacterRenderer(this.renderer.context, this.assets);
-    this.worldRenderer = new LegacyWorldRenderer(this.renderer, characterRenderer);
+    this.worldRenderer = new PrototypeWorldRenderer(this.renderer, characterRenderer);
     this.visualUI = new VisualUIRenderer(this.renderer, characterRenderer);
     this.transition = new ScreenTransition(this.renderer.context, GAME_CONFIG.width, GAME_CONFIG.height);
-    this.gameplay = new LegacyGameplaySystem(
+    this.gameplay = new PrototypeGameplaySystem(
       this.input,
-      this.maps,
       this.state,
       this.saves,
       GAME_CONFIG.width,
-      GAME_CONFIG.height,
     );
-    this.gameplay.loadLevel(this.savedGame.currentLevel);
 
     const navigate = (scene: string): void => this.navigate(scene);
     this.loadingScene = new LoadingScene(this.state, this.visualUI);
     const playScene = new PlayScene(
       this.input,
-      this.maps,
       this.gameplay,
       this.state,
       this.worldRenderer,
       () => navigate("pause"),
+      () => navigate("gameOver"),
     );
 
     this.scenes.register("loading", this.loadingScene);
@@ -95,6 +97,7 @@ export class Game {
       "SHOP SYSTEM RESERVED FOR A FUTURE MILESTONE",
       () => navigate("menu"),
     ));
+    this.scenes.register("gameOver", new GameOverScene(this.input, this.gameplay, this.state, this.visualUI, navigate));
     this.scenes.register("play", playScene);
     this.scenes.register("pause", new PauseScene(
       this.input,
@@ -137,6 +140,7 @@ export class Game {
     this.animations.clear();
     this.assets.clear();
     this.input.dispose();
+    this.unsubscribeState();
   }
 
   private update(deltaSeconds: number): void {
@@ -152,7 +156,7 @@ export class Game {
     this.debug.render(
       this.renderer.context,
       this.renderer.ui,
-      this.gameplay.level,
+      undefined,
       this.gameplay.player,
       this.gameplay.camera.x,
       this.performance.snapshot,
@@ -162,5 +166,14 @@ export class Game {
 
   private navigate(scene: string): void {
     this.transition.start(() => this.scenes.start(scene));
+  }
+
+  private syncCanvasState(state: Readonly<import("../state/GameStateManager").GameState>): void {
+    const { canvas } = this.renderer;
+    canvas.dataset.gameMode = state.mode;
+    canvas.dataset.runFlow = state.runFlow;
+    canvas.dataset.lives = String(state.lives);
+    canvas.dataset.gold = String(state.gold);
+    canvas.dataset.character = state.selectedCharacter;
   }
 }

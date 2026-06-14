@@ -17,6 +17,15 @@ const requiredFiles = [
   "src/game/rendering/VisualUIRenderer.ts",
   "src/game/animation/SpriteAnimator.ts",
   "src/game/scenes/CharacterSelectScene.ts",
+  "src/game/scenes/GameOverScene.ts",
+  "src/game/systems/PlayerMovementSystem.ts",
+  "src/game/systems/CombatSystem.ts",
+  "src/game/systems/LivesSystem.ts",
+  "src/game/systems/RespawnSystem.ts",
+  "src/game/systems/GoldSystem.ts",
+  "src/game/systems/PrototypeGameplaySystem.ts",
+  "src/game/rendering/PrototypeWorldRenderer.ts",
+  "src/game/maps/testArea.ts",
   "assets/player/player-atlas.png",
   "assets/animation/player-atlas.json",
 ];
@@ -44,4 +53,4 @@ if (png.readUInt32BE(16) !== metadata.imageWidth || png.readUInt32BE(20) !== met
 }
 if (png[25] !== 6) throw new Error("Player atlas must use RGBA color data.");
 
-console.log(`Architecture and visual pipeline checks passed (${requiredFiles.length} required files).`);
+console.log(`Architecture, visual, and gameplay pipeline checks passed (${requiredFiles.length} required files).`);

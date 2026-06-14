@@ -1,9 +1,10 @@
+import { GAMEPLAY_CONFIG } from "../../config/gameplay";
 import { CharacterAnimationStateMachine } from "../animation/CharacterAnimationStateMachine";
 import type { InputSystem } from "../input/InputSystem";
-import type { MapLoader } from "../maps/MapLoader";
-import type { LegacyWorldRenderer } from "../rendering/LegacyWorldRenderer";
+import { containsPoint } from "../physics/collision";
+import { PAUSE_BUTTON, type PrototypeWorldRenderer } from "../rendering/PrototypeWorldRenderer";
 import type { GameStateManager } from "../state/GameStateManager";
-import type { LegacyGameplaySystem } from "../systems/LegacyGameplaySystem";
+import type { PrototypeGameplaySystem } from "../systems/PrototypeGameplaySystem";
 import type { Scene } from "./Scene";
 
 export class PlayScene implements Scene {
@@ -11,38 +12,34 @@ export class PlayScene implements Scene {
 
   constructor(
     private readonly input: InputSystem,
-    private readonly maps: MapLoader,
-    private readonly gameplay: LegacyGameplaySystem,
+    private readonly gameplay: PrototypeGameplaySystem,
     private readonly state: GameStateManager,
-    private readonly renderer: LegacyWorldRenderer,
+    private readonly renderer: PrototypeWorldRenderer,
     private readonly openPause: () => void,
+    private readonly openGameOver: () => void,
   ) {}
 
   enter(): void {
-    this.state.patch({ mode: "playing" });
+    this.state.patch({ mode: "playing", runFlow: this.gameplay.respawn.state });
   }
 
   exit(): void {}
 
   update(deltaSeconds: number): void {
-    if (this.input.consume("escape")) {
+    const pointer = this.input.consumePointerRelease();
+    if (this.input.consumeAction("pause") || (pointer && containsPoint(PAUSE_BUTTON, pointer.x, pointer.y))) {
       this.openPause();
       return;
     }
 
-    if (this.state.snapshot.levelCleared) {
-      const finalLevel = this.state.snapshot.currentLevel === this.maps.count - 1;
-      if (!finalLevel && this.input.consume("enter")) this.gameplay.advanceLevel();
-      if (finalLevel && this.input.consume("r")) this.gameplay.newGame();
-      return;
-    }
-
-    this.gameplay.update(deltaSeconds);
+    const events = this.gameplay.update(deltaSeconds);
+    if (events.attackStarted) this.characterAnimation.playOnce("attack", GAMEPLAY_CONFIG.attackDuration);
+    if (events.deathStarted) this.characterAnimation.playOnce("death", GAMEPLAY_CONFIG.deathDuration);
     this.characterAnimation.update(deltaSeconds, this.gameplay.player);
+    if (events.gameOver) this.openGameOver();
   }
 
   render(): void {
-    const level = this.gameplay.level;
-    if (level) this.renderer.renderWorld(level, this.gameplay.player, this.state.snapshot, this.gameplay.camera.x, this.characterAnimation.animator);
+    this.renderer.render(this.gameplay, this.state.snapshot, this.characterAnimation.animator);
   }
 }

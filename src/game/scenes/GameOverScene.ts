@@ -5,11 +5,10 @@ import type { PrototypeGameplaySystem } from "../systems/PrototypeGameplaySystem
 import { MenuListController } from "../ui/MenuListController";
 import type { Scene } from "./Scene";
 
-export class PauseScene implements Scene {
+export class GameOverScene implements Scene {
   private readonly menu = new MenuListController([
-    { id: "resume", label: "RESUME" },
-    { id: "restart", label: "RESTART" },
-    { id: "exit", label: "EXIT" },
+    { id: "restart", label: "RESTART RUN" },
+    { id: "menu", label: "RETURN MENU" },
   ]);
 
   constructor(
@@ -17,30 +16,26 @@ export class PauseScene implements Scene {
     private readonly gameplay: PrototypeGameplaySystem,
     private readonly state: GameStateManager,
     private readonly renderer: VisualUIRenderer,
-    private readonly renderGame: () => void,
     private readonly navigate: (scene: string) => void,
   ) {}
 
   enter(): void {
-    this.state.patch({ mode: "paused" });
+    this.state.patch({ mode: "gameOver", runFlow: "gameOver" });
     this.menu.reset();
   }
 
   exit(): void {}
 
   update(): void {
-    if (this.input.consumeAction("pause")) return this.navigate("play");
     const action = this.menu.update(this.input);
-    if (action === "resume") this.navigate("play");
     if (action === "restart") {
-      this.gameplay.restartFromCheckpoint();
+      this.gameplay.restartRun();
       this.navigate("play");
     }
-    if (action === "exit") this.navigate("menu");
+    if (action === "menu" || this.input.consume("escape")) this.navigate("menu");
   }
 
   render(): void {
-    this.renderGame();
-    this.renderer.pause(this.menu.options, this.menu.selectedIndex);
+    this.renderer.gameOver(this.menu.options, this.menu.selectedIndex, this.state.snapshot.gold);
   }
 }

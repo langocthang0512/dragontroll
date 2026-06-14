@@ -9,11 +9,13 @@
     "prebuild": "npm run assets:build",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit --pretty false",
-    "check": "npm run typecheck && node tools/validate-structure.mjs"
+    "check": "npm run typecheck && npm test && node tools/validate-structure.mjs"
   },
   "devDependencies": {
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
   }
 }

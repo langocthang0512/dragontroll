@@ -2,7 +2,7 @@ import { SpriteAnimator } from "../animation/SpriteAnimator";
 import type { InputSystem } from "../input/InputSystem";
 import type { VisualUIRenderer } from "../rendering/VisualUIRenderer";
 import type { GameStateManager } from "../state/GameStateManager";
-import type { LegacyGameplaySystem } from "../systems/LegacyGameplaySystem";
+import type { PrototypeGameplaySystem } from "../systems/PrototypeGameplaySystem";
 import { MenuListController } from "../ui/MenuListController";
 import type { Scene } from "./Scene";
 
@@ -16,7 +16,7 @@ export class MainMenuScene implements Scene {
 
   constructor(
     private readonly input: InputSystem,
-    private readonly gameplay: LegacyGameplaySystem,
+    private readonly gameplay: PrototypeGameplaySystem,
     private readonly state: GameStateManager,
     private readonly renderer: VisualUIRenderer,
     private readonly navigate: (scene: string) => void,
@@ -33,10 +33,7 @@ export class MainMenuScene implements Scene {
   update(deltaSeconds: number): void {
     this.preview.update(deltaSeconds);
     const action = this.menu.update(this.input);
-    if (action === "start") {
-      this.gameplay.loadLevel(this.state.snapshot.currentLevel);
-      this.navigate("play");
-    }
+    if (action === "start") this.navigate(this.gameplay.startOrResume() ? "play" : "gameOver");
     if (action === "shop") this.navigate("shop");
     if (action === "settings") this.navigate("settings");
   }

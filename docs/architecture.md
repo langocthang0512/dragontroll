@@ -30,3 +30,7 @@ Future development should add gameplay through systems and typed map data rather
 ## Visual foundation milestone
 
 The second milestone added a generated-at-build character atlas, JSON animation metadata, character state machines, persistent profile selection, bitmap UI primitives, dedicated visual scenes, pixel-safe camera smoothing, and screen transitions. The Canvas 2D architecture remains appropriate: the full character set is one small texture, UI primitives allocate no per-frame DOM, and the existing renderer can be replaced independently if future profiling justifies WebGL.
+
+## Core gameplay milestone
+
+The third milestone replaced the active legacy play path with a modular internal test yard. Movement, combat, lives, gold, checkpoints, respawn phases, run persistence, HUD, pause, and Game Over are independent systems composed by `PrototypeGameplaySystem`. Legacy level data remains in the repository for migration safety but is not imported into the production bundle or used by the prototype scene.

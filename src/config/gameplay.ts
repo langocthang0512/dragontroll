@@ -1,0 +1,18 @@
+export const GAMEPLAY_CONFIG = {
+  maxLives: 3,
+  gravity: 1800,
+  maxFallSpeed: 900,
+  groundAcceleration: 2600,
+  airAcceleration: 1450,
+  groundDeceleration: 3000,
+  maxRunSpeed: 260,
+  jumpSpeed: 610,
+  coyoteTime: 0.1,
+  jumpBufferTime: 0.12,
+  attackDuration: 0.28,
+  attackActiveStart: 0.07,
+  attackActiveEnd: 0.17,
+  attackCooldown: 0.16,
+  deathDuration: 0.72,
+  respawnDuration: 0.22,
+} as const;

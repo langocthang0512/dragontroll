@@ -24,4 +24,10 @@ export class LivesSystem {
     this.value = Math.max(0, this.value - 1);
     return { remainingLives: this.value, gameOver: this.value === 0 };
   }
+
+  addLife(): boolean {
+    if (this.value >= DEFAULT_LIVES) return false;
+    this.value++;
+    return true;
+  }
 }

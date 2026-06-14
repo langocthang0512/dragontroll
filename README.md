@@ -1,6 +1,6 @@
 # Dragon Troll Island
 
-Dragon Troll Island is a browser platform game running on a modular TypeScript and Canvas 2D foundation. It includes a reproducible pixel-art pipeline and a playable core-systems prototype with responsive movement, sword combat, lives, checkpoint respawning, persistent gold, pause, and Game Over flow.
+Dragon Troll Island is a browser platform game running on a modular TypeScript and Canvas 2D foundation. Playable Build V1 includes the complete Lost World Map 1, responsive movement and sword combat, patrolling projectile enemies, telegraphed falling hazards, checkpoint respawning, persistent gold, a basic life shop, Game Over, and victory flow.
 
 ## Requirements
 
@@ -14,7 +14,7 @@ npm install
 npm run dev
 ```
 
-Vite prints the local development URL. Controls are `A`/`D` or arrow keys to move, `Space`/`W`/up arrow to jump, `J`/`X` to attack, and `Escape` to pause. Menus use arrows or `W`/`S`, `Enter`, and `Escape`. The internal test yard also supports `K` to exercise damage, death, respawn, and Game Over. Press the backquote key to toggle diagnostics.
+Vite prints the local development URL. Controls are `A`/`D` or arrow keys to move, `Space`/`W`/up arrow to jump, `J`/`X` to attack, and `Escape` to pause. Menus use arrows or `W`/`S`, `Enter`, and `Escape`. Press the backquote key to toggle diagnostics.
 
 ## Quality checks
 
@@ -55,4 +55,5 @@ Import the GitHub repository in Vercel. The included configuration uses `npm run
 
 See `docs/architecture.md` for the audit and migration rationale.
 See `docs/visual-pipeline.md` for atlas ownership, animation timing, visual rules, and the character concept source prompt.
-See `docs/gameplay-systems.md` for the core loop, save schema, test area, and extension rules.
+See `docs/gameplay-systems.md` for the core loop, save schema, and extension rules.
+See `docs/map1-production.md` for Map 1 structure, enemy/hazard rules, progression, and shop behavior.

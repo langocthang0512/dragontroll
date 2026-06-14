@@ -26,6 +26,54 @@ export interface TrainingTarget extends Rect {
   flashRemaining: number;
 }
 
+export interface EnemyEntity extends TrainingTarget {
+  patrolMin: number;
+  patrolMax: number;
+  direction: -1 | 1;
+  speed: number;
+  shootCooldownRemaining: number;
+  alive: boolean;
+}
+
+export interface EnemyProjectile extends Rect {
+  active: boolean;
+  vx: number;
+}
+
+export type FallingHazardState = "idle" | "telegraph" | "falling";
+
+export interface FallingHazard extends Rect {
+  id: string;
+  spawnY: number;
+  resetY: number;
+  triggerX: number;
+  triggerWidth: number;
+  state: FallingHazardState;
+  telegraphRemaining: number;
+  vy: number;
+}
+
+export interface GoalObject extends Rect {
+  id: string;
+}
+
+export interface LevelSection {
+  id: string;
+  label: string;
+  startX: number;
+  endX: number;
+}
+
+export type DecorationKind = "tree" | "ruin" | "idol" | "vine" | "flower" | "waterfall";
+
+export interface EnvironmentDecoration {
+  id: string;
+  kind: DecorationKind;
+  x: number;
+  y: number;
+  scale: number;
+}
+
 export interface PrototypeArea {
   id: string;
   name: string;
@@ -36,5 +84,10 @@ export interface PrototypeArea {
   platforms: StaticPlatform[];
   checkpoints: CheckpointObject[];
   gold: GoldPickup[];
-  target: TrainingTarget;
+  target?: TrainingTarget;
+  enemies: EnemyEntity[];
+  hazards: FallingHazard[];
+  goal: GoalObject;
+  sections: LevelSection[];
+  decorations: EnvironmentDecoration[];
 }

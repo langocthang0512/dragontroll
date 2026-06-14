@@ -34,3 +34,7 @@ The second milestone added a generated-at-build character atlas, JSON animation 
 ## Core gameplay milestone
 
 The third milestone replaced the active legacy play path with a modular internal test yard. Movement, combat, lives, gold, checkpoints, respawn phases, run persistence, HUD, pause, and Game Over are independent systems composed by `PrototypeGameplaySystem`. Legacy level data remains in the repository for migration safety but is not imported into the production bundle or used by the prototype scene.
+
+## Playable Build V1 milestone
+
+The fourth milestone promotes those systems into the complete Lost World Map 1 without changing the runtime architecture. Typed map data owns eight level sections, terrain, collectibles, enemy placements, hazards, decorations, checkpoint, and goal. `EnemySystem` uses a fixed projectile pool, while `FallingHazardSystem` owns explicit idle, telegraph, and falling states. Victory and shop are scenes, not gameplay-system branches, and the Canvas renderer culls world objects outside a padded viewport.

@@ -32,7 +32,7 @@ export class VisualUIRenderer {
   }
 
   mainMenu(options: readonly MenuOption[], selectedIndex: number, variant: CharacterVariant, animator: SpriteAnimator): void {
-    this.menu("DRAGON TROLL ISLAND", "CORE GAMEPLAY PROTOTYPE", options, selectedIndex);
+    this.menu("DRAGON TROLL ISLAND", "MAP 1  LOST WORLD", options, selectedIndex);
     this.characters.render(variant, animator, 210, 400, 1, 2);
     this.drawPedestal(210, 408);
   }
@@ -66,7 +66,39 @@ export class VisualUIRenderer {
     ui.pixelText(`RUN GOLD  ${gold}`, 480, 150, 2, "#f0c35a", "center");
     ui.pixelPanel(310, 190, 340, 180, "#131e33", "#8a6c3d");
     options.forEach((option, index) => ui.pixelButton(option.label, 350, 220 + index * 64, 260, index === selectedIndex));
-    ui.pixelText("RESTART RESETS RUN PROGRESS", 480, 430, 2, "#8fa8b8", "center");
+    ui.pixelText("GOLD IS KEPT FOR THE SHOP", 480, 430, 2, "#8fa8b8", "center");
+  }
+
+  shop(options: readonly MenuOption[], selectedIndex: number, lives: number, gold: number, message: string): void {
+    this.backdrop();
+    const { ui, context } = this.renderer;
+    ui.pixelText("JUNGLE OUTPOST", 480, 72, 5, "#f0c35a", "center");
+    ui.pixelText("BASIC SHOP", 480, 126, 2, "#8fa8b8", "center");
+    ui.pixelPanel(180, 166, 250, 230, "#131e33", "#8a6c3d");
+    this.drawHeart(305, 226, 3);
+    ui.pixelText("ONE LIFE", 305, 300, 3, "#f5f1dc", "center");
+    ui.pixelText("50 GOLD", 305, 338, 2, "#f0c35a", "center");
+    ui.pixelPanel(500, 166, 280, 230, "#131e33", "#8a6c3d");
+    options.forEach((option, index) => ui.pixelButton(option.label, 530, 210 + index * 64, 220, index === selectedIndex));
+    ui.pixelText(`LIVES ${lives} OF 3`, 640, 344, 2, "#d9e2e8", "center");
+    ui.pixelText(`WALLET ${gold}`, 640, 370, 2, "#f0c35a", "center");
+    if (message) ui.pixelText(message, 480, 438, 2, "#82c59d", "center");
+    ui.pixelText("ENTER TO BUY   ESC TO RETURN", 480, 482, 2, "#8fa8b8", "center");
+    context.fillStyle = "#25344d";
+    context.fillRect(206, 188, 198, 4);
+  }
+
+  victory(options: readonly MenuOption[], selectedIndex: number, gold: number, deaths: number): void {
+    this.backdrop();
+    const { ui } = this.renderer;
+    ui.pixelText("LOST WORLD CLEARED", 480, 76, 4, "#82c59d", "center");
+    ui.pixelText("THE ANCIENT GATE IS AWAKE", 480, 128, 2, "#f0c35a", "center");
+    ui.pixelPanel(250, 166, 460, 92, "#131e33", "#8a6c3d");
+    ui.pixelText(`GOLD ${gold}`, 350, 202, 3, "#f0c35a", "center");
+    ui.pixelText(`FALLS ${deaths}`, 610, 202, 3, "#d9e2e8", "center");
+    ui.pixelPanel(310, 286, 340, 150, "#131e33", "#8a6c3d");
+    options.forEach((option, index) => ui.pixelButton(option.label, 350, 308 + index * 58, 260, index === selectedIndex));
+    ui.pixelText("NEXT MAP UNLOCK PLACEHOLDER SAVED", 480, 474, 2, "#8fa8b8", "center");
   }
 
   placeholder(title: string, message: string): void {
@@ -94,6 +126,19 @@ export class VisualUIRenderer {
     context.fillRect(x - 52, y - 4, 104, 8);
     context.fillStyle = "#8fa8b8";
     context.fillRect(x - 44, y - 4, 88, 3);
+  }
+
+  private drawHeart(x: number, y: number, scale: number): void {
+    const context = this.renderer.context;
+    context.fillStyle = "#701f32";
+    context.fillRect(x - 8 * scale, y - 5 * scale, 16 * scale, 11 * scale);
+    context.fillRect(x - 5 * scale, y + 6 * scale, 10 * scale, 4 * scale);
+    context.fillStyle = "#e94f64";
+    context.fillRect(x - 7 * scale, y - 4 * scale, 6 * scale, 8 * scale);
+    context.fillRect(x + scale, y - 4 * scale, 6 * scale, 8 * scale);
+    context.fillRect(x - 5 * scale, y + 4 * scale, 10 * scale, 3 * scale);
+    context.fillStyle = "#ff91a0";
+    context.fillRect(x - 5 * scale, y - 3 * scale, 2 * scale, 2 * scale);
   }
 
   private backdrop(): void {

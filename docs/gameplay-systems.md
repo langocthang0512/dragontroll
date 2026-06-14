@@ -1,8 +1,8 @@
 # Core gameplay systems
 
-## Prototype scope
+## Playable Build V1 scope
 
-The active play scene is an internal systems yard, not Map 1. It contains static platforms, one jump gap leading to the void, one checkpoint door, four gold pickups, and a non-enemy training dummy. It intentionally contains no enemy, trap, final level content, shop logic, ranged attack, or combo system.
+The active play scene is the complete Lost World Map 1. The original prototype systems now compose authored level data, moss drake enemies, pooled white-orb projectiles, telegraphed falling hazards, one persistent checkpoint, collectible gold, a final goal, victory flow, and the basic life shop. Map 2 and audio remain outside this milestone.
 
 ## Controls
 
@@ -10,7 +10,6 @@ The active play scene is an internal systems yard, not Map 1. It contains static
 - Jump: `Space`, `W`, or up arrow
 - Sword attack: `J` or `X`
 - Pause: `Escape` or the HUD pause button
-- Internal damage test: `K`
 
 `InputSystem` exposes normalized actions and virtual-action setters, so touch controls can drive the same movement/combat contracts without changing gameplay systems.
 
@@ -20,7 +19,7 @@ The active play scene is an internal systems yard, not Map 1. It contains static
 
 ## Combat
 
-`CombatSystem` implements one quick sword swing with a startup, active hit window, recovery, cooldown, forward-facing hitbox, one-hit-per-swing protection, and interruption. The training dummy validates hit detection without introducing enemy behavior.
+`CombatSystem` implements one quick sword swing with startup, an active hit window, recovery, cooldown, a forward-facing hitbox, one-hit-per-swing protection, and interruption. It accepts reusable target lists; Map 1 uses one-hit moss drakes.
 
 ## Progression and flow
 
@@ -28,7 +27,7 @@ The active play scene is an internal systems yard, not Map 1. It contains static
 - Generic damage sources call `PrototypeGameplaySystem.applyDamage(reason)`.
 - Death enters a timed animation phase, then respawns at the latest checkpoint while lives remain.
 - At 0 lives, flow enters Game Over.
-- Restart Run restores 3 lives and clears checkpoint, gold, and collected-gold ownership.
+- Restart Run restores 3 lives and clears checkpoint and collected-gold ownership while preserving wallet gold.
 - Pause Restart returns to the latest checkpoint without spending a life.
 - Only the latest checkpoint is active.
 - Collected gold IDs prevent duplicate pickup after reload.
@@ -39,4 +38,4 @@ Schema v3 persists selected character, legacy level index, lives, gold, collecte
 
 ## QA
 
-`npm test` runs deterministic Vitest coverage for movement, air control, jump, attack windows, cooldown, life depletion, respawn transitions, latest-checkpoint ownership, gold deduplication, and save/reload behavior. Browser QA additionally verifies scene flow, HUD pause, death animation routing, reload persistence, Game Over, restart, and console cleanliness.
+`npm test` runs deterministic Vitest coverage for movement, combat targeting, enemy fire/defeat, hazard telegraph/drop/reset, Map 1 structure, life depletion, respawn transitions, checkpoint ownership, shop economy, gold deduplication, and save/reload behavior. Browser QA verifies the complete menu-to-victory flow, HUD pause, checkpoint reload, Game Over, shop purchase states, restart, and console cleanliness.

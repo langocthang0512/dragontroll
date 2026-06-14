@@ -1,6 +1,6 @@
 import type { CharacterVariant } from "../animation/types";
 
-export type GameMode = "loading" | "menu" | "settings" | "character" | "playing" | "paused" | "gameOver";
+export type GameMode = "loading" | "menu" | "settings" | "character" | "shop" | "playing" | "paused" | "gameOver" | "victory";
 
 export type RunFlowState = "spawn" | "play" | "dying" | "respawn" | "gameOver";
 

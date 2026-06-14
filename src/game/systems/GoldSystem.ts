@@ -21,10 +21,17 @@ export class GoldSystem {
     for (const pickup of pickups) pickup.collected = this.collectedIds.has(pickup.id);
   }
 
-  reset(pickups: GoldPickup[]): void {
-    this.total = 0;
+  reset(pickups: GoldPickup[], preserveTotal = false): void {
+    if (!preserveTotal) this.total = 0;
     this.collectedIds.clear();
     for (const pickup of pickups) pickup.collected = false;
+  }
+
+  spend(amount: number): boolean {
+    const price = Math.max(0, Math.trunc(amount));
+    if (this.total < price) return false;
+    this.total -= price;
+    return true;
   }
 
   collect(player: Player, pickups: GoldPickup[]): number {

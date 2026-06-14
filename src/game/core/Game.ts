@@ -15,10 +15,11 @@ import { GameOverScene } from "../scenes/GameOverScene";
 import { LoadingScene } from "../scenes/LoadingScene";
 import { MainMenuScene } from "../scenes/MainMenuScene";
 import { PauseScene } from "../scenes/PauseScene";
-import { PlaceholderScene } from "../scenes/PlaceholderScene";
 import { PlayScene } from "../scenes/PlayScene";
 import { SceneManager } from "../scenes/SceneManager";
 import { SettingsScene } from "../scenes/SettingsScene";
+import { ShopScene } from "../scenes/ShopScene";
+import { VictoryScene } from "../scenes/VictoryScene";
 import { GameStateManager } from "../state/GameStateManager";
 import { PrototypeGameplaySystem } from "../systems/PrototypeGameplaySystem";
 import { ScreenTransition } from "../ui/ScreenTransition";
@@ -78,6 +79,7 @@ export class Game {
       this.worldRenderer,
       () => navigate("pause"),
       () => navigate("gameOver"),
+      () => navigate("victory"),
     );
 
     this.scenes.register("loading", this.loadingScene);
@@ -90,14 +92,9 @@ export class Game {
     ));
     this.scenes.register("settings", new SettingsScene(this.input, this.state, this.visualUI, navigate));
     this.scenes.register("character", new CharacterSelectScene(this.input, this.saves, this.state, this.visualUI, navigate));
-    this.scenes.register("shop", new PlaceholderScene(
-      this.input,
-      this.visualUI,
-      "SHOP",
-      "SHOP SYSTEM RESERVED FOR A FUTURE MILESTONE",
-      () => navigate("menu"),
-    ));
+    this.scenes.register("shop", new ShopScene(this.input, this.gameplay, this.state, this.visualUI, navigate));
     this.scenes.register("gameOver", new GameOverScene(this.input, this.gameplay, this.state, this.visualUI, navigate));
+    this.scenes.register("victory", new VictoryScene(this.input, this.gameplay, this.state, this.visualUI, navigate));
     this.scenes.register("play", playScene);
     this.scenes.register("pause", new PauseScene(
       this.input,
@@ -175,5 +172,6 @@ export class Game {
     canvas.dataset.lives = String(state.lives);
     canvas.dataset.gold = String(state.gold);
     canvas.dataset.character = state.selectedCharacter;
+    canvas.dataset.levelCleared = String(state.levelCleared);
   }
 }

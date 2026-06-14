@@ -17,6 +17,7 @@ export class PlayScene implements Scene {
     private readonly renderer: PrototypeWorldRenderer,
     private readonly openPause: () => void,
     private readonly openGameOver: () => void,
+    private readonly openVictory: () => void,
   ) {}
 
   enter(): void {
@@ -37,6 +38,7 @@ export class PlayScene implements Scene {
     if (events.deathStarted) this.characterAnimation.playOnce("death", GAMEPLAY_CONFIG.deathDuration);
     this.characterAnimation.update(deltaSeconds, this.gameplay.player);
     if (events.gameOver) this.openGameOver();
+    if (events.victory) this.openVictory();
   }
 
   render(): void {

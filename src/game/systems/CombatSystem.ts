@@ -10,6 +10,7 @@ export interface CombatUpdate {
   started: boolean;
   hit: boolean;
   finished: boolean;
+  hitTargetId?: string;
 }
 
 export class CombatSystem {
@@ -31,19 +32,26 @@ export class CombatSystem {
     this.hitApplied = false;
   }
 
-  update(deltaSeconds: number, player: Player, target: TrainingTarget): CombatUpdate {
+  update(deltaSeconds: number, player: Player, target: TrainingTarget | readonly TrainingTarget[]): CombatUpdate {
     const result: CombatUpdate = { started: false, hit: false, finished: false };
-    if (target.flashRemaining > 0) target.flashRemaining = Math.max(0, target.flashRemaining - deltaSeconds);
+    const targets = Array.isArray(target) ? target : [target];
+    for (const item of targets) {
+      if (item.flashRemaining > 0) item.flashRemaining = Math.max(0, item.flashRemaining - deltaSeconds);
+    }
     if (this.state === "ready") return result;
 
     this.elapsed += deltaSeconds;
     if (this.state === "attacking") {
       const active = this.elapsed >= GAMEPLAY_CONFIG.attackActiveStart && this.elapsed <= GAMEPLAY_CONFIG.attackActiveEnd;
-      if (active && !this.hitApplied && intersects(this.hitbox(player), target)) {
+      const hitTarget = active && !this.hitApplied
+        ? targets.find((item) => (item as TrainingTarget & { alive?: boolean }).alive !== false && intersects(this.hitbox(player), item))
+        : undefined;
+      if (hitTarget) {
         this.hitApplied = true;
-        target.hitCount++;
-        target.flashRemaining = 0.12;
+        hitTarget.hitCount++;
+        hitTarget.flashRemaining = 0.12;
         result.hit = true;
+        result.hitTargetId = hitTarget.id;
       }
       if (this.elapsed >= GAMEPLAY_CONFIG.attackDuration) {
         this.state = "cooldown";

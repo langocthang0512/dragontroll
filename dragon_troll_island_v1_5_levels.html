@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Dragon Troll Island v1.0</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#0d0d16; overflow:hidden; font-family:Arial, sans-serif; }
+  canvas { display:block; margin:0 auto; background:#87ceeb; image-rendering: pixelated; }
+</style>
+</head>
+<body>
+<canvas id="game" width="960" height="540"></canvas>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
+const W = canvas.width, H = canvas.height;
+const SAVE_KEY = "dragon_troll_island_v10_save";
+const keys = {};
+document.addEventListener("keydown", e => { keys[e.key.toLowerCase()] = true; if(e.key === " ") e.preventDefault(); });
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+let state = "menu";
+let currentLevel = Number(localStorage.getItem(SAVE_KEY) || 0);
+if(currentLevel < 0 || currentLevel > 4) currentLevel = 0;
+let level, baseLevel;
+let cameraX = 0, deaths = 0, msg = "Press ENTER to start";
+let levelCleared = false;
+
+const player = {
+  x:60,y:360,w:42,h:34,vx:0,vy:0,ground:false,face:1,
+  checkpointX:60,checkpointY:360
+};
+
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+function rect(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+function saveProgress(i){ localStorage.setItem(SAVE_KEY, String(i)); }
+
+function resetRunStateToCheckpoint(text){
+  // Reset traps/moving/falling platforms for this life, but keep current checkpoint.
+  const cpX = player.checkpointX, cpY = player.checkpointY;
+  level = deepClone(baseLevel);
+  player.checkpointX = cpX; player.checkpointY = cpY;
+  player.x = cpX; player.y = cpY;
+  player.vx = 0; player.vy = 0;
+  msg = text; deaths++;
+  cameraX = Math.max(0, Math.min(level.width-W, player.x-W*0.42));
+}
+
+function loadLevel(i){
+  currentLevel = i;
+  baseLevel = deepClone(levels[i]);
+  level = deepClone(baseLevel);
+  player.x = level.start.x; player.y = level.start.y;
+  player.checkpointX = level.start.x; player.checkpointY = level.start.y;
+  player.vx = player.vy = 0; player.ground = false;
+  cameraX = 0; levelCleared = false;
+  msg = level.name;
+}
+
+function newGame(){
+  localStorage.removeItem(SAVE_KEY);
+  currentLevel = 0; deaths = 0; loadLevel(0); state = "playing";
+}
+
+const levels = [
+{
+ name:"Level 1 - Sunny Hatchery",
+ bg:["#8bd8ff","#ccf6ff"], width:2600, start:{x:60,y:360}, egg:{x:2450,y:365,w:42,h:90},
+ platforms:[
+  {x:0,y:500,w:2600,h:40},{x:170,y:420,w:150,h:24},{x:420,y:360,w:120,h:24},{x:650,y:420,w:150,h:24},
+  {x:910,y:350,w:130,h:24},{x:1160,y:405,w:160,h:24},{x:1430,y:350,w:140,h:24},{x:1700,y:420,w:150,h:24},
+  {x:1960,y:340,w:130,h:24},{x:2200,y:435,w:170,h:24},{x:2400,y:455,w:150,h:24}
+ ],
+ crumbly:[
+  {x:520,y:460,w:95,h:22,delay:28,fall:false,timer:0,vy:0},{x:1500,y:460,w:95,h:22,delay:28,fall:false,timer:0,vy:0}
+ ],
+ moving:[
+  {x:810,y:450,w:100,h:20,startX:810,startY:450,minX:810,maxX:1030,minY:450,maxY:450,speed:2,dir:1,axis:"x"}
+ ],
+ spikes:[{x:350,y:470,w:40,h:30},{x:830,y:470,w:40,h:30},{x:1360,y:470,w:40,h:30},{x:1880,y:470,w:40,h:30}],
+ gems:[{x:230,y:380,w:24,h:24,trap:"platform"},{x:1210,y:365,w:24,h:24,trap:"enemy"},{x:2020,y:300,w:24,h:24,trap:"fall"}],
+ fallingBlocks:[{x:470,y:100,startY:100,w:48,h:48,vy:0,active:false},{x:1180,y:120,startY:120,w:48,h:48,vy:0,active:false},{x:2050,y:90,startY:90,w:48,h:48,vy:0,active:false}],
+ enemies:[{x:1160,y:371,w:34,h:34,left:1160,right:1320,speed:2}],
+ checkpoints:[{x:980,y:300,w:38,h:80,real:true},{x:1810,y:370,w:38,h:80,real:true},{x:2240,y:385,w:38,h:70,real:false}],
+ textTraps:[{x:690,y:372,w:100,h:48,msg:"Cute sign? Nope."},{x:2140,y:390,w:100,h:45,msg:"The finish is never free."}]
+},
+{
+ name:"Level 2 - Fire Volcano",
+ bg:["#ff9b54","#ffd166"], width:3100, start:{x:60,y:360}, egg:{x:2930,y:300,w:42,h:90},
+ platforms:[
+  {x:0,y:500,w:3100,h:40},{x:230,y:430,w:120,h:24},{x:460,y:360,w:120,h:24},{x:680,y:300,w:120,h:24},
+  {x:930,y:420,w:150,h:24},{x:1200,y:360,w:130,h:24},{x:1470,y:300,w:140,h:24},{x:1740,y:410,w:140,h:24},
+  {x:2000,y:360,w:140,h:24},{x:2260,y:305,w:130,h:24},{x:2520,y:420,w:150,h:24},{x:2820,y:390,w:200,h:24}
+ ],
+ crumbly:[
+  {x:370,y:465,w:85,h:22,delay:22,fall:false,timer:0,vy:0},{x:1360,y:465,w:110,h:22,delay:18,fall:false,timer:0,vy:0},{x:2390,y:465,w:95,h:22,delay:22,fall:false,timer:0,vy:0}
+ ],
+ moving:[
+  {x:1110,y:450,w:110,h:20,startX:1110,startY:450,minX:1110,maxX:1390,minY:450,maxY:450,speed:2.4,dir:1,axis:"x"},
+  {x:2140,y:390,w:100,h:20,startX:2140,startY:390,minX:2140,maxX:2140,minY:270,maxY:410,speed:1.8,dir:1,axis:"y"}
+ ],
+ spikes:[{x:570,y:470,w:45,h:30},{x:820,y:470,w:45,h:30},{x:1690,y:470,w:45,h:30},{x:1930,y:470,w:45,h:30},{x:2740,y:470,w:45,h:30}],
+ lava:[{x:1080,y:500,w:130,h:40},{x:1540,y:500,w:120,h:40},{x:2670,y:500,w:110,h:40}],
+ gems:[{x:710,y:260,w:24,h:24,trap:"fall"},{x:1505,y:260,w:24,h:24,trap:"spike"},{x:2300,y:265,w:24,h:24,trap:"enemy"}],
+ fallingBlocks:[{x:280,y:110,startY:110,w:50,h:50,vy:0,active:false},{x:980,y:100,startY:100,w:50,h:50,vy:0,active:false},{x:1840,y:110,startY:110,w:50,h:50,vy:0,active:false},{x:2550,y:90,startY:90,w:50,h:50,vy:0,active:false}],
+ enemies:[{x:930,y:386,w:34,h:34,left:930,right:1080,speed:2.4},{x:1740,y:376,w:34,h:34,left:1740,right:1880,speed:2.8},{x:2520,y:386,w:34,h:34,left:2520,right:2670,speed:3}],
+ checkpoints:[{x:760,y:450,w:38,h:50,real:false},{x:1230,y:310,w:38,h:80,real:true},{x:2070,y:310,w:38,h:80,real:true}],
+ textTraps:[{x:300,y:452,w:80,h:48,msg:"Volcano says nope."},{x:2800,y:342,w:100,h:48,msg:"Last jump. Maybe."}]
+},
+{
+ name:"Level 3 - Storm Skyland",
+ bg:["#5f6caf","#a3cef1"], width:3400, start:{x:60,y:360}, egg:{x:3230,y:240,w:42,h:90},
+ platforms:[
+  {x:0,y:500,w:520,h:40},{x:620,y:440,w:120,h:24},{x:860,y:360,w:120,h:24},{x:1100,y:290,w:130,h:24},
+  {x:1360,y:400,w:110,h:24},{x:1600,y:330,w:130,h:24},{x:1870,y:270,w:120,h:24},{x:2140,y:380,w:130,h:24},
+  {x:2400,y:320,w:130,h:24},{x:2680,y:420,w:140,h:24},{x:2960,y:320,w:140,h:24},{x:3180,y:330,w:220,h:24}
+ ],
+ crumbly:[
+  {x:760,y:450,w:90,h:22,delay:24,fall:false,timer:0,vy:0},{x:1250,y:450,w:90,h:22,delay:24,fall:false,timer:0,vy:0},{x:2320,y:450,w:90,h:22,delay:20,fall:false,timer:0,vy:0}
+ ],
+ moving:[
+  {x:510,y:455,w:100,h:20,startX:510,startY:455,minX:510,maxX:650,minY:455,maxY:455,speed:2.2,dir:1,axis:"x"},
+  {x:1480,y:260,w:100,h:20,startX:1480,startY:260,minX:1480,maxX:1800,minY:260,maxY:260,speed:2.8,dir:1,axis:"x"},
+  {x:2840,y:360,w:100,h:20,startX:2840,startY:360,minX:2840,maxX:2840,minY:240,maxY:420,speed:2,dir:1,axis:"y"}
+ ],
+ spikes:[{x:760,y:500,w:60,h:40},{x:1230,y:500,w:80,h:40},{x:1760,y:500,w:80,h:40},{x:2570,y:500,w:80,h:40},{x:3090,y:500,w:80,h:40}],
+ gems:[{x:1135,y:250,w:24,h:24,trap:"wind"},{x:1905,y:230,w:24,h:24,trap:"fakeWin"},{x:2715,y:380,w:24,h:24,trap:"platform"}],
+ fallingBlocks:[{x:910,y:90,startY:90,w:48,h:48,vy:0,active:false},{x:1390,y:100,startY:100,w:48,h:48,vy:0,active:false},{x:2190,y:70,startY:70,w:48,h:48,vy:0,active:false},{x:3010,y:80,startY:80,w:48,h:48,vy:0,active:false}],
+ enemies:[{x:620,y:406,w:34,h:34,left:620,right:740,speed:2.5},{x:1600,y:296,w:34,h:34,left:1600,right:1730,speed:3},{x:2960,y:286,w:34,h:34,left:2960,right:3100,speed:3.2}],
+ checkpoints:[{x:900,y:310,w:38,h:80,real:true},{x:1930,y:220,w:38,h:80,real:true},{x:2770,y:370,w:38,h:70,real:false}],
+ textTraps:[{x:2140,y:334,w:130,h:46,msg:"Almost there... maybe."},{x:3060,y:274,w:130,h:46,msg:"Sky dragons love taxes."}]
+},
+{
+ name:"Level 4 - Frozen Cave",
+ bg:["#bde0fe","#eaf6ff"], width:3600, start:{x:60,y:360}, egg:{x:3420,y:340,w:42,h:90}, ice:true,
+ platforms:[
+  {x:0,y:500,w:3600,h:40},{x:240,y:430,w:160,h:24},{x:520,y:360,w:130,h:24},{x:780,y:420,w:150,h:24},
+  {x:1040,y:330,w:130,h:24},{x:1310,y:400,w:140,h:24},{x:1580,y:310,w:130,h:24},{x:1850,y:420,w:150,h:24},
+  {x:2130,y:350,w:140,h:24},{x:2400,y:290,w:130,h:24},{x:2670,y:420,w:150,h:24},{x:2960,y:340,w:130,h:24},{x:3320,y:430,w:200,h:24}
+ ],
+ crumbly:[
+  {x:660,y:465,w:100,h:22,delay:35,fall:false,timer:0,vy:0},{x:1740,y:465,w:100,h:22,delay:35,fall:false,timer:0,vy:0},{x:3100,y:465,w:100,h:22,delay:30,fall:false,timer:0,vy:0}
+ ],
+ moving:[
+  {x:960,y:450,w:110,h:20,startX:960,startY:450,minX:960,maxX:1240,minY:450,maxY:450,speed:2,dir:1,axis:"x"},
+  {x:2240,y:405,w:110,h:20,startX:2240,startY:405,minX:2240,maxX:2520,minY:405,maxY:405,speed:2.5,dir:1,axis:"x"},
+  {x:3150,y:280,w:110,h:20,startX:3150,startY:280,minX:3150,maxX:3150,minY:250,maxY:430,speed:1.8,dir:1,axis:"y"}
+ ],
+ spikes:[{x:440,y:470,w:45,h:30},{x:940,y:470,w:45,h:30},{x:1490,y:470,w:45,h:30},{x:2050,y:470,w:45,h:30},{x:2850,y:470,w:45,h:30}],
+ gems:[{x:545,y:320,w:24,h:24,trap:"iceSpike"},{x:1620,y:270,w:24,h:24,trap:"fall"},{x:2440,y:250,w:24,h:24,trap:"enemy"},{x:3000,y:300,w:24,h:24,trap:"wind"}],
+ fallingBlocks:[{x:330,y:90,startY:90,w:34,h:70,vy:0,active:false},{x:1120,y:80,startY:80,w:34,h:70,vy:0,active:false},{x:1880,y:90,startY:90,w:34,h:70,vy:0,active:false},{x:2720,y:70,startY:70,w:34,h:70,vy:0,active:false},{x:3370,y:70,startY:70,w:34,h:70,vy:0,active:false}],
+ enemies:[{x:780,y:386,w:34,h:34,left:780,right:930,speed:2.6},{x:1850,y:386,w:34,h:34,left:1850,right:2000,speed:2.6},{x:2670,y:386,w:34,h:34,left:2670,right:2820,speed:3}],
+ checkpoints:[{x:1080,y:280,w:38,h:80,real:true},{x:2190,y:300,w:38,h:80,real:true},{x:3190,y:390,w:38,h:70,real:true}],
+ textTraps:[{x:1320,y:352,w:120,h:46,msg:"Ice physics. Pain."},{x:3320,y:384,w:150,h:46,msg:"Final cave jump."}]
+},
+{
+ name:"Level 5 - Dark Temple",
+ bg:["#25213b","#6d597a"], width:4300, start:{x:60,y:360}, egg:{x:4070,y:315,w:42,h:90}, boss:true,
+ platforms:[
+  {x:0,y:500,w:4300,h:40},{x:260,y:430,w:140,h:24},{x:520,y:350,w:130,h:24},{x:780,y:420,w:150,h:24},
+  {x:1050,y:310,w:130,h:24},{x:1320,y:405,w:140,h:24},{x:1600,y:340,w:130,h:24},{x:1880,y:420,w:150,h:24},
+  {x:2160,y:320,w:140,h:24},{x:2440,y:400,w:140,h:24},{x:2720,y:300,w:130,h:24},{x:3000,y:420,w:150,h:24},
+  {x:3290,y:330,w:140,h:24},{x:3600,y:405,w:160,h:24},{x:3920,y:405,w:220,h:24}
+ ],
+ crumbly:[
+  {x:430,y:465,w:90,h:22,delay:20,fall:false,timer:0,vy:0},{x:1210,y:465,w:90,h:22,delay:20,fall:false,timer:0,vy:0},{x:2050,y:465,w:100,h:22,delay:18,fall:false,timer:0,vy:0},{x:3190,y:465,w:100,h:22,delay:18,fall:false,timer:0,vy:0}
+ ],
+ moving:[
+  {x:940,y:450,w:110,h:20,startX:940,startY:450,minX:940,maxX:1230,minY:450,maxY:450,speed:2.6,dir:1,axis:"x"},
+  {x:1760,y:280,w:110,h:20,startX:1760,startY:280,minX:1760,maxX:2050,minY:280,maxY:280,speed:3,dir:1,axis:"x"},
+  {x:2880,y:360,w:110,h:20,startX:2880,startY:360,minX:2880,maxX:2880,minY:260,maxY:430,speed:2.2,dir:1,axis:"y"},
+  {x:3760,y:340,w:100,h:20,startX:3760,startY:340,minX:3760,maxX:3950,minY:340,maxY:340,speed:2.4,dir:1,axis:"x"}
+ ],
+ spikes:[{x:650,y:470,w:45,h:30},{x:980,y:470,w:45,h:30},{x:1510,y:470,w:45,h:30},{x:2350,y:470,w:45,h:30},{x:2650,y:470,w:45,h:30},{x:3490,y:470,w:45,h:30}],
+ lava:[{x:3140,y:500,w:130,h:40}],
+ gems:[{x:550,y:310,w:24,h:24,trap:"enemy"},{x:1085,y:270,w:24,h:24,trap:"fakeWin"},{x:1640,y:300,w:24,h:24,trap:"fall"},{x:2760,y:260,w:24,h:24,trap:"platform"},{x:3630,y:365,w:24,h:24,trap:"boss"}],
+ fallingBlocks:[{x:350,y:80,startY:80,w:54,h:54,vy:0,active:false},{x:1150,y:70,startY:70,w:54,h:54,vy:0,active:false},{x:1980,y:80,startY:80,w:54,h:54,vy:0,active:false},{x:2500,y:70,startY:70,w:54,h:54,vy:0,active:false},{x:3350,y:70,startY:70,w:54,h:54,vy:0,active:false}],
+ enemies:[{x:780,y:386,w:34,h:34,left:780,right:930,speed:3},{x:1880,y:386,w:34,h:34,left:1880,right:2030,speed:3.2},{x:3000,y:386,w:34,h:34,left:3000,right:3150,speed:3.4}],
+ checkpoints:[{x:1120,y:260,w:38,h:80,real:true},{x:2240,y:270,w:38,h:80,real:true},{x:3350,y:280,w:38,h:80,real:true},{x:3980,y:355,w:38,h:50,real:false}],
+ textTraps:[{x:2460,y:352,w:130,h:46,msg:"Dark temple tax paid."},{x:3860,y:360,w:130,h:46,msg:"Boss says hello."}]
+}
+];
+
+function getAllPlatforms(){
+  return [...(level.platforms||[]), ...(level.crumbly||[]), ...(level.moving||[])].filter(p => !p.gone);
+}
+
+function updateMovingPlatforms(){
+  for(const m of level.moving || []){
+    const oldX = m.x, oldY = m.y;
+    if(m.axis === "x"){
+      m.x += m.speed * m.dir;
+      if(m.x < m.minX || m.x > m.maxX){ m.dir *= -1; m.x += m.speed * m.dir; }
+    } else {
+      m.y += m.speed * m.dir;
+      if(m.y < m.minY || m.y > m.maxY){ m.dir *= -1; m.y += m.speed * m.dir; }
+    }
+    m.dx = m.x - oldX; m.dy = m.y - oldY;
+  }
+}
+
+function handleCrumbly(){
+  for(const c of level.crumbly || []){
+    if(c.gone) continue;
+    const standing = player.x + player.w > c.x && player.x < c.x+c.w && Math.abs((player.y+player.h)-c.y) < 4 && player.vy >= 0;
+    if(standing && !c.fall){
+      c.timer++;
+      if(c.timer >= c.delay){ c.fall = true; c.vy = 1.5; msg = "Ground collapsed!"; }
+    }
+    if(c.fall){
+      c.vy += 0.55; c.y += c.vy;
+      if(c.y > H+80) c.gone = true;
+    }
+  }
+}
+
+function update(){
+  if(state !== "playing") return;
+  if(levelCleared){
+    if(keys["enter"] && currentLevel < levels.length-1){ loadLevel(currentLevel+1); keys["enter"]=false; }
+    if(keys["r"] && currentLevel === levels.length-1){ newGame(); keys["r"]=false; }
+    return;
+  }
+
+  updateMovingPlatforms();
+
+  // Horizontal movement, ice level has some slippery acceleration.
+  if(level.ice){
+    if(keys["a"] || keys["arrowleft"]){ player.vx -= 0.55; player.face=-1; }
+    else if(keys["d"] || keys["arrowright"]){ player.vx += 0.55; player.face=1; }
+    else player.vx *= 0.94;
+    player.vx = Math.max(-6.2, Math.min(6.2, player.vx));
+  } else {
+    player.vx = 0;
+    if(keys["a"] || keys["arrowleft"]){ player.vx = -5; player.face=-1; }
+    if(keys["d"] || keys["arrowright"]){ player.vx = 5; player.face=1; }
+  }
+  if((keys[" "] || keys["w"] || keys["arrowup"]) && player.ground) player.vy = -14;
+
+  player.x += player.vx;
+  for(const p of getAllPlatforms()){
+    if(rect(player,p)){
+      if(player.vx > 0) player.x = p.x - player.w;
+      if(player.vx < 0) player.x = p.x + p.w;
+    }
+  }
+
+  player.vy += 0.7;
+  player.y += player.vy;
+  player.ground = false;
+
+  for(const p of getAllPlatforms()){
+    if(rect(player,p)){
+      if(player.vy > 0){
+        player.y = p.y - player.h;
+        player.vy = 0; player.ground = true;
+        if(p.dx){ player.x += p.dx; }
+        if(p.dy){ player.y += p.dy; }
+      } else if(player.vy < 0){
+        player.y = p.y + p.h; player.vy = 0;
+      }
+    }
+  }
+
+  handleCrumbly();
+
+  if(player.y > H+160) resetRunStateToCheckpoint("Void dragon moment.");
+
+  for(const s of level.spikes || []) if(rect(player,s)) resetRunStateToCheckpoint("Classic spike. Classic pain.");
+  for(const l of level.lava || []) if(rect(player,l)) resetRunStateToCheckpoint("Lava bath. Not recommended.");
+
+  for(const cp of level.checkpoints || []){
+    if(rect(player,cp)){
+      if(cp.real){
+        player.checkpointX = cp.x;
+        player.checkpointY = cp.y - player.h;
+        msg = "Checkpoint saved.";
+      } else resetRunStateToCheckpoint("Fake checkpoint. Evil dev moment.");
+    }
+  }
+
+  for(const g of level.gems || []){
+    if(g.active === false) continue;
+    if(rect(player,g)){
+      g.active = false;
+      if(g.trap === "platform"){ level.platforms.push({x:g.x+20,y:g.y+10,w:100,h:20}); msg = "Gem created suspicious land."; }
+      if(g.trap === "enemy"){ level.enemies.push({x:g.x+30,y:g.y+10,w:34,h:34,left:g.x,right:g.x+190,speed:3}); msg = "Surprise goblin."; }
+      if(g.trap === "fall"){ level.fallingBlocks.push({x:g.x-22,y:50,startY:50,w:60,h:60,vy:0,active:true,triggered:true}); msg = "That gem called a meteor."; }
+      if(g.trap === "spike"){ level.spikes.push({x:g.x-20,y:g.y+32,w:70,h:42}); msg = "Gem spawned spikes. Rude."; }
+      if(g.trap === "iceSpike"){ level.spikes.push({x:g.x+25,y:g.y+60,w:60,h:42}); msg = "Ice gem made teeth."; }
+      if(g.trap === "wind"){ player.x -= 90; player.vx = -12; msg = "Wind says go back."; }
+      if(g.trap === "fakeWin"){ msg = "Fake victory gem. Keep moving."; }
+      if(g.trap === "boss"){
+        level.enemies.push({x:g.x+100,y:g.y-20,w:70,h:70,left:g.x+60,right:g.x+360,speed:4,boss:true});
+        level.fallingBlocks.push({x:g.x+230,y:40,startY:40,w:70,h:70,vy:0,active:true,triggered:true});
+        msg = "Ancient dragon woke up.";
+      }
+    }
+  }
+
+  for(const b of level.fallingBlocks || []){
+    if(!b.triggered && Math.abs((player.x+player.w/2)-(b.x+b.w/2)) < 95){ b.active=true; b.triggered=true; }
+    if(b.active){ b.vy += 0.6; b.y += b.vy; }
+    if(rect(player,b)) resetRunStateToCheckpoint("Bonk! Falling rock trap.");
+    if(b.y > H+100){ b.active=false; b.gone=true; }
+  }
+  level.fallingBlocks = (level.fallingBlocks || []).filter(b => !b.gone);
+
+  for(const e of level.enemies || []){
+    e.x += e.speed;
+    if(e.x < e.left || e.x + e.w > e.right){ e.speed *= -1; e.x += e.speed; }
+    if(rect(player,e)) resetRunStateToCheckpoint(e.boss ? "Boss hugged too hard." : "Tiny dragon got bullied.");
+  }
+
+  for(const t of level.textTraps || []){
+    if(!t.done && rect(player,t)){
+      t.done = true; msg = t.msg;
+      level.fallingBlocks.push({x:player.x+90,y:70,startY:70,w:48,h:48,vy:0,active:true,triggered:true});
+    }
+  }
+
+  if(rect(player, level.egg)){
+    levelCleared = true;
+    if(currentLevel < levels.length-1){ saveProgress(currentLevel+1); msg = "Level cleared! Press ENTER."; }
+    else { saveProgress(0); msg = "YOU WIN! Press R to restart."; }
+  }
+
+  cameraX = Math.max(0, Math.min(level.width-W, player.x-W*0.42));
+}
+
+function drawSky(){
+  const grd = ctx.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0, level.bg[0]); grd.addColorStop(1, level.bg[1]);
+  ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = "rgba(255,255,255,0.28)";
+  for(let i=0;i<10;i++){
+    const x = ((i*330-cameraX*0.2)%(W+350))-140, y = 45+(i%4)*55;
+    ctx.fillRect(x,y,85,18); ctx.fillRect(x+30,y-12,95,22); ctx.fillRect(x+85,y+5,60,14);
+  }
+}
+
+function drawDragon(x,y,face){
+  ctx.save(); ctx.translate(Math.floor(x-cameraX), Math.floor(y));
+  if(face === -1){ ctx.translate(42,0); ctx.scale(-1,1); }
+  // Original cute pixel dragon, fantasy hatchling vibe, not copied asset.
+  ctx.fillStyle="#7b45ff"; ctx.fillRect(4,12,30,18); ctx.fillRect(10,6,18,10); ctx.fillRect(28,7,18,19);
+  ctx.fillStyle="#5f2fd1"; ctx.fillRect(6,29,8,7); ctx.fillRect(25,29,8,7); ctx.fillRect(2,18,8,8);
+  ctx.fillStyle="#b78cff"; ctx.fillRect(10,16,18,6); ctx.fillRect(32,12,9,6);
+  ctx.fillStyle="#ffcf4d"; ctx.fillRect(31,1,4,7); ctx.fillRect(39,1,4,7);
+  ctx.fillStyle="#ff5d5d"; ctx.fillRect(11,-5,5,11); ctx.fillRect(18,-8,5,14); ctx.fillRect(25,-5,5,11);
+  ctx.fillStyle="#ffd166"; ctx.fillRect(43,13,10,4); ctx.fillRect(46,10,5,10);
+  ctx.fillStyle="#fff"; ctx.fillRect(38,10,5,5); ctx.fillStyle="#111"; ctx.fillRect(40,12,2,2);
+  ctx.fillStyle="#5f2fd1"; ctx.fillRect(-4,17,9,5); ctx.fillRect(-8,19,6,4);
+  ctx.restore();
+}
+
+function drawBossEnemy(e){
+  ctx.fillStyle="#2b164f"; ctx.fillRect(e.x,e.y,e.w,e.h);
+  ctx.fillStyle="#ff5555"; ctx.fillRect(e.x+10,e.y-15,10,15); ctx.fillRect(e.x+45,e.y-15,10,15);
+  ctx.fillStyle="#fff"; ctx.fillRect(e.x+45,e.y+18,8,8);
+  ctx.fillStyle="#111"; ctx.fillRect(e.x+49,e.y+21,3,3);
+}
+
+function drawWorld(){
+  drawSky(); ctx.save(); ctx.translate(-cameraX,0);
+
+  for(const p of level.platforms||[]){
+    ctx.fillStyle = level.ice ? "#90e0ef" : "#43aa52"; ctx.fillRect(p.x,p.y,p.w,p.h);
+    ctx.fillStyle = level.ice ? "#48cae4" : "#2f7d32"; ctx.fillRect(p.x,p.y+p.h-7,p.w,7);
+  }
+  for(const c of level.crumbly||[]){
+    if(c.gone) continue;
+    ctx.fillStyle = c.fall ? "#9a7b4f" : "#b08968"; ctx.fillRect(c.x,c.y,c.w,c.h);
+    ctx.fillStyle="#6f4e37"; for(let x=c.x+8;x<c.x+c.w-8;x+=22) ctx.fillRect(x,c.y+7,12,4);
+  }
+  for(const m of level.moving||[]){
+    ctx.fillStyle="#ffd166"; ctx.fillRect(m.x,m.y,m.w,m.h);
+    ctx.fillStyle="#9d6b00"; ctx.fillRect(m.x,m.y+m.h-5,m.w,5);
+  }
+  for(const l of level.lava||[]){
+    ctx.fillStyle="#ff3b1f"; ctx.fillRect(l.x,l.y,l.w,l.h);
+    ctx.fillStyle="#ffd166"; for(let x=l.x;x<l.x+l.w;x+=24) ctx.fillRect(x,l.y+6,12,6);
+  }
+  for(const s of level.spikes||[]){
+    ctx.fillStyle = level.ice ? "#caf0f8" : "#df2935";
+    ctx.beginPath(); ctx.moveTo(s.x,s.y+s.h); ctx.lineTo(s.x+s.w/2,s.y); ctx.lineTo(s.x+s.w,s.y+s.h); ctx.fill();
+  }
+  for(const b of level.fallingBlocks||[]){
+    ctx.fillStyle = level.ice ? "#caf0f8" : "#8b5e34"; ctx.fillRect(b.x,b.y,b.w,b.h);
+    ctx.fillStyle = level.ice ? "#90e0ef" : "#5c3d22"; ctx.fillRect(b.x+8,b.y+8,b.w-16,b.h-16);
+  }
+  for(const e of level.enemies||[]){
+    if(e.boss){ drawBossEnemy(e); continue; }
+    ctx.fillStyle="#c1121f"; ctx.fillRect(e.x,e.y,e.w,e.h);
+    ctx.fillStyle="#fff"; ctx.fillRect(e.x+7,e.y+8,5,5); ctx.fillRect(e.x+22,e.y+8,5,5);
+    ctx.fillStyle="#111"; ctx.fillRect(e.x+9,e.y+10,2,2); ctx.fillRect(e.x+24,e.y+10,2,2);
+  }
+  for(const g of level.gems||[]){
+    if(g.active === false) continue;
+    ctx.fillStyle="#ffd700"; ctx.fillRect(g.x+8,g.y,8,5); ctx.fillRect(g.x+4,g.y+5,16,10); ctx.fillRect(g.x+8,g.y+15,8,8);
+  }
+  for(const cp of level.checkpoints||[]){
+    ctx.fillStyle = cp.real ? "#3a86ff" : "#8d99ae"; ctx.fillRect(cp.x,cp.y,cp.w,cp.h);
+    ctx.fillStyle="#fff"; ctx.fillRect(cp.x+10,cp.y+8,18,12);
+  }
+  ctx.fillStyle="#ffe066"; ctx.beginPath(); ctx.ellipse(level.egg.x+22,level.egg.y+45,22,45,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#ff9f1c"; ctx.fillRect(level.egg.x+15,level.egg.y+25,8,8); ctx.fillRect(level.egg.x+28,level.egg.y+45,8,8);
+
+  ctx.restore(); drawDragon(player.x,player.y,player.face);
+}
+
+function drawHUD(){
+  ctx.fillStyle="rgba(0,0,0,.5)"; ctx.fillRect(12,12,570,96);
+  ctx.fillStyle="#fff"; ctx.font="22px Arial"; ctx.fillText(level.name,24,40);
+  ctx.font="18px Arial"; ctx.fillText(msg,24,68); ctx.fillText("Deaths: "+deaths+" | Level "+(currentLevel+1)+"/5 | Checkpoint saves on blue flag",24,94);
+  ctx.fillStyle="rgba(0,0,0,.5)"; ctx.fillRect(620,12,320,58);
+  ctx.fillStyle="#fff"; ctx.fillText("A/D or Arrow = Move",635,36); ctx.fillText("Space/W/Up = Jump | ESC = Menu",635,60);
+}
+
+function drawMenu(){
+  if(!level) loadLevel(currentLevel);
+  drawSky();
+  ctx.fillStyle="rgba(0,0,0,.62)"; ctx.fillRect(210,105,540,330);
+  ctx.fillStyle="#fff"; ctx.font="42px Arial"; ctx.fillText("Dragon Troll Island",285,170);
+  ctx.font="20px Arial"; ctx.fillText("v1.0 - 5 longer troll levels",355,210);
+  ctx.fillText("ENTER: Continue saved level",345,275);
+  ctx.fillText("N: New Game",410,315);
+  ctx.fillText("Saved level: "+(currentLevel+1)+"/5",405,355);
+  ctx.fillText("Traps reset after death/checkpoint respawn.",285,395);
+  drawDragon(455+cameraX,225,1);
+}
+
+function draw(){
+  if(state==="menu"){ drawMenu(); return; }
+  drawWorld(); drawHUD();
+  if(levelCleared){
+    ctx.fillStyle="rgba(0,0,0,.62)"; ctx.fillRect(250,205,470,125);
+    ctx.fillStyle="#fff"; ctx.font="28px Arial"; ctx.fillText(msg,300,255);
+    ctx.font="20px Arial"; ctx.fillText(currentLevel<levels.length-1 ? "Press ENTER for next level" : "Press R to restart",365,292);
+  }
+}
+
+function handleKeys(){
+  if(state==="menu"){
+    if(keys["enter"]){ loadLevel(currentLevel); state="playing"; keys["enter"]=false; }
+    if(keys["n"]){ newGame(); keys["n"]=false; }
+  } else if(keys["escape"]){ state="menu"; keys["escape"]=false; }
+}
+
+function loop(){ handleKeys(); update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

@@ -26,3 +26,7 @@ Phaser and PixiJS were considered. They would add useful tooling later, but neit
 5. Add build, type, structure, browser, and deployment verification.
 
 Future development should add gameplay through systems and typed map data rather than expanding the application composer. External art should enter through the asset manifest. Spatial indexing and sprite batching should only be introduced when profiling shows the current traversal is a real bottleneck.
+
+## Visual foundation milestone
+
+The second milestone added a generated-at-build character atlas, JSON animation metadata, character state machines, persistent profile selection, bitmap UI primitives, dedicated visual scenes, pixel-safe camera smoothing, and screen transitions. The Canvas 2D architecture remains appropriate: the full character set is one small texture, UI primitives allocate no per-frame DOM, and the existing renderer can be replaced independently if future profiling justifies WebGL.

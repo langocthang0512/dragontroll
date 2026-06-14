@@ -1,4 +1,6 @@
-export type GameMode = "menu" | "playing";
+import type { CharacterVariant } from "../animation/types";
+
+export type GameMode = "loading" | "menu" | "settings" | "character" | "playing" | "paused";
 
 export interface GameState {
   mode: GameMode;
@@ -6,6 +8,7 @@ export interface GameState {
   deaths: number;
   message: string;
   levelCleared: boolean;
+  selectedCharacter: CharacterVariant;
 }
 
 type StateListener = (state: Readonly<GameState>) => void;

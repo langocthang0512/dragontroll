@@ -40,9 +40,13 @@ export class LegacyGameplaySystem {
   }
 
   newGame(): void {
-    this.saves.clear();
+    this.saves.resetProgress();
     this.state.patch({ deaths: 0 });
     this.loadLevel(0);
+  }
+
+  restartLevel(): void {
+    this.loadLevel(this.state.snapshot.currentLevel);
   }
 
   advanceLevel(): void {
@@ -50,7 +54,7 @@ export class LegacyGameplaySystem {
     if (next < this.maps.count) this.loadLevel(next);
   }
 
-  update(): void {
+  update(deltaSeconds: number): void {
     const level = this.requireLevel();
     if (this.state.snapshot.levelCleared) return;
 
@@ -138,7 +142,7 @@ export class LegacyGameplaySystem {
     }
 
     if (intersects(this.player, level.egg)) this.completeLevel();
-    this.camera.follow(this.player.x, level.width);
+    this.camera.follow(this.player.x, level.width, deltaSeconds);
   }
 
   private updatePlayerMovement(level: LevelMap): void {
@@ -288,7 +292,7 @@ export class LegacyGameplaySystem {
     const checkpoint = this.checkpoints.restore();
     this.currentMap = this.maps.load(this.state.snapshot.currentLevel);
     Object.assign(this.player, { x: checkpoint.x, y: checkpoint.y, vx: 0, vy: 0, ground: false });
-    this.camera.follow(this.player.x, this.currentMap.width);
+    this.camera.snapTo(this.player.x, this.currentMap.width);
     this.state.patch({ deaths: this.state.snapshot.deaths + 1, message });
   }
 

@@ -1,6 +1,6 @@
 # Dragon Troll Island
 
-Dragon Troll Island is a browser platform game running on a modular TypeScript and Canvas 2D foundation. The migration preserves all five legacy levels, controls, traps, checkpoints, saves, and procedural visuals while separating engine services from game-specific behavior.
+Dragon Troll Island is a browser platform game running on a modular TypeScript and Canvas 2D foundation. It now includes a reproducible pixel-art atlas pipeline, two persistent character variants, frame animation, pixel UI screens, camera smoothing, loading flow, and scene transitions while preserving the playable legacy levels.
 
 ## Requirements
 
@@ -14,11 +14,12 @@ npm install
 npm run dev
 ```
 
-Vite prints the local development URL. Controls are `A`/`D` or arrow keys to move, `Space`/`W`/up arrow to jump, and `Escape` to return to the menu. Press the backquote key to toggle diagnostics.
+Vite prints the local development URL. Controls are `A`/`D` or arrow keys to move, `Space`/`W`/up arrow to jump, and `Escape` to pause. Menus use arrows or `W`/`S`, `Enter`, and `Escape`. Press the backquote key to toggle diagnostics.
 
 ## Quality checks
 
 ```bash
+npm run assets:build
 npm run check
 npm run build
 ```
@@ -51,3 +52,4 @@ Import the GitHub repository in Vercel. The included configuration uses `npm run
 - `tools`: project validation scripts
 
 See `docs/architecture.md` for the audit and migration rationale.
+See `docs/visual-pipeline.md` for atlas ownership, animation timing, visual rules, and the character concept source prompt.

@@ -6,9 +6,18 @@ export type AssetManifest = readonly AssetDefinition[];
 
 export class AssetLoader {
   private readonly assets = new Map<string, HTMLImageElement | unknown>();
+  progress = 0;
 
-  async loadAll(manifest: AssetManifest): Promise<void> {
-    await Promise.all(manifest.map((asset) => this.load(asset)));
+  async loadAll(manifest: AssetManifest, onProgress?: (progress: number) => void): Promise<void> {
+    this.progress = manifest.length === 0 ? 1 : 0;
+    onProgress?.(this.progress);
+    let loaded = 0;
+    await Promise.all(manifest.map(async (asset) => {
+      await this.load(asset);
+      loaded++;
+      this.progress = loaded / manifest.length;
+      onProgress?.(this.progress);
+    }));
   }
 
   get<T>(id: string): T {
@@ -22,6 +31,7 @@ export class AssetLoader {
 
   clear(): void {
     this.assets.clear();
+    this.progress = 0;
   }
 
   private async load(asset: AssetDefinition): Promise<void> {

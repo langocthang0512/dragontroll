@@ -1,25 +1,17 @@
+import type { SpriteAnimator } from "../animation/SpriteAnimator";
 import type { Player } from "../entities/Player";
 import type { LevelMap } from "../maps/types";
 import type { GameState } from "../state/GameStateManager";
 import type { CanvasRenderer } from "./CanvasRenderer";
+import type { CharacterRenderer } from "./CharacterRenderer";
 
 export class LegacyWorldRenderer {
-  constructor(private readonly renderer: CanvasRenderer) {}
+  constructor(
+    private readonly renderer: CanvasRenderer,
+    private readonly characters: CharacterRenderer,
+  ) {}
 
-  renderMenu(level: LevelMap, player: Player, state: Readonly<GameState>): void {
-    this.drawSky(level, 0);
-    const { ui } = this.renderer;
-    ui.panel(210, 105, 540, 330, "rgba(0,0,0,.62)");
-    ui.text("Dragon Troll Island", 285, 170, { font: "42px Arial" });
-    ui.text("v1.0 - 5 longer troll levels", 355, 210, { font: "20px Arial" });
-    ui.text("ENTER: Continue saved level", 345, 275, { font: "20px Arial" });
-    ui.text("N: New Game", 410, 315, { font: "20px Arial" });
-    ui.text(`Saved level: ${state.currentLevel + 1}/5`, 405, 355, { font: "20px Arial" });
-    ui.text("Traps reset after death/checkpoint respawn.", 285, 395, { font: "20px Arial" });
-    this.drawDragon(455, 225, player.face, 0);
-  }
-
-  renderWorld(level: LevelMap, player: Player, state: Readonly<GameState>, cameraX: number): void {
+  renderWorld(level: LevelMap, player: Player, state: Readonly<GameState>, cameraX: number, animator: SpriteAnimator): void {
     const context = this.renderer.context;
     this.drawSky(level, cameraX);
     context.save();
@@ -100,7 +92,7 @@ export class LegacyWorldRenderer {
     context.fillRect(level.egg.x + 28, level.egg.y + 45, 8, 8);
     context.restore();
 
-    this.drawDragon(player.x, player.y, player.face, cameraX);
+    this.characters.render(state.selectedCharacter, animator, player.x + player.w / 2 - cameraX, player.y + player.h, player.face);
     this.drawHud(level, state);
     if (state.levelCleared) this.drawLevelComplete(state);
   }
@@ -122,35 +114,6 @@ export class LegacyWorldRenderer {
     }
   }
 
-  private drawDragon(x: number, y: number, face: -1 | 1, cameraX: number): void {
-    const { context } = this.renderer;
-    context.save();
-    context.translate(Math.floor(x - cameraX), Math.floor(y));
-    if (face === -1) {
-      context.translate(42, 0);
-      context.scale(-1, 1);
-    }
-    context.fillStyle = "#7b45ff";
-    context.fillRect(4, 12, 30, 18); context.fillRect(10, 6, 18, 10); context.fillRect(28, 7, 18, 19);
-    context.fillStyle = "#5f2fd1";
-    context.fillRect(6, 29, 8, 7); context.fillRect(25, 29, 8, 7); context.fillRect(2, 18, 8, 8);
-    context.fillStyle = "#b78cff";
-    context.fillRect(10, 16, 18, 6); context.fillRect(32, 12, 9, 6);
-    context.fillStyle = "#ffcf4d";
-    context.fillRect(31, 1, 4, 7); context.fillRect(39, 1, 4, 7);
-    context.fillStyle = "#ff5d5d";
-    context.fillRect(11, -5, 5, 11); context.fillRect(18, -8, 5, 14); context.fillRect(25, -5, 5, 11);
-    context.fillStyle = "#ffd166";
-    context.fillRect(43, 13, 10, 4); context.fillRect(46, 10, 5, 10);
-    context.fillStyle = "#fff";
-    context.fillRect(38, 10, 5, 5);
-    context.fillStyle = "#111";
-    context.fillRect(40, 12, 2, 2);
-    context.fillStyle = "#5f2fd1";
-    context.fillRect(-4, 17, 9, 5); context.fillRect(-8, 19, 6, 4);
-    context.restore();
-  }
-
   private drawBossEnemy(x: number, y: number, width: number, height: number): void {
     const { context } = this.renderer;
     context.fillStyle = "#2b164f";
@@ -165,19 +128,19 @@ export class LegacyWorldRenderer {
 
   private drawHud(level: LevelMap, state: Readonly<GameState>): void {
     const { ui } = this.renderer;
-    ui.panel(12, 12, 570, 96);
-    ui.text(level.name, 24, 40, { font: "22px Arial" });
-    ui.text(state.message, 24, 68);
-    ui.text(`Deaths: ${state.deaths} | Level ${state.currentLevel + 1}/5 | Checkpoint saves on blue flag`, 24, 94);
-    ui.panel(620, 12, 320, 58);
-    ui.text("A/D or Arrow = Move", 635, 36);
-    ui.text("Space/W/Up = Jump | ESC = Menu", 635, 60);
+    ui.pixelPanel(12, 12, 570, 92, "rgba(17,28,44,.9)", "#718096");
+    ui.pixelText(level.name, 24, 26, 2, "#f0c35a");
+    ui.pixelText(state.message, 24, 52, 2);
+    ui.pixelText(`DEATHS ${state.deaths}  LEVEL ${state.currentLevel + 1}/5`, 24, 78, 2, "#b8c6d1");
+    ui.pixelPanel(620, 12, 328, 68, "rgba(17,28,44,.9)", "#718096");
+    ui.pixelText("MOVE  A/D OR ARROWS", 634, 28, 2);
+    ui.pixelText("JUMP  SPACE/W/UP", 634, 52, 2);
   }
 
   private drawLevelComplete(state: Readonly<GameState>): void {
     const { ui } = this.renderer;
-    ui.panel(250, 205, 470, 125, "rgba(0,0,0,.62)");
-    ui.text(state.message, 300, 255, { font: "28px Arial" });
-    ui.text(state.currentLevel < 4 ? "Press ENTER for next level" : "Press R to restart", 365, 292, { font: "20px Arial" });
+    ui.pixelPanel(250, 205, 470, 125);
+    ui.pixelText(state.message, 485, 235, 3, "#f0c35a", "center");
+    ui.pixelText(state.currentLevel < 4 ? "PRESS ENTER FOR NEXT LEVEL" : "PRESS R TO RESTART", 485, 286, 2, "#f5f1dc", "center");
   }
 }

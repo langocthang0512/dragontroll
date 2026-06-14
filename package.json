@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "assets:build": "node tools/generate-player-atlas.mjs",
     "dev": "vite",
+    "prebuild": "npm run assets:build",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit --pretty false",

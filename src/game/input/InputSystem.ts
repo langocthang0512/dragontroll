@@ -21,6 +21,7 @@ export class InputSystem {
   private readonly virtualDown = new Set<GameAction>();
   private readonly virtualPressed = new Set<GameAction>();
   private pointerRelease?: PointerRelease;
+  private editorShortcut = false;
   private canvas?: HTMLCanvasElement;
 
   constructor(private readonly target: Window = window) {
@@ -64,6 +65,12 @@ export class InputSystem {
     return release;
   }
 
+  consumeEditorShortcut(): boolean {
+    const pressed = this.editorShortcut;
+    this.editorShortcut = false;
+    return pressed;
+  }
+
   consume(key: string): boolean {
     if (!this.pressed.has(key)) return false;
     this.pressed.delete(key);
@@ -86,6 +93,11 @@ export class InputSystem {
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     const key = event.key.toLowerCase();
+    if (event.ctrlKey && event.shiftKey && key === "e") {
+      this.editorShortcut = true;
+      event.preventDefault();
+      return;
+    }
     if (!this.down.has(key)) this.pressed.add(key);
     this.down.add(key);
     if (BLOCKED_KEYS.has(key)) event.preventDefault();
@@ -101,6 +113,7 @@ export class InputSystem {
     this.virtualDown.clear();
     this.virtualPressed.clear();
     this.pointerRelease = undefined;
+    this.editorShortcut = false;
   };
 
   private readonly onPointerUp = (event: PointerEvent): void => {

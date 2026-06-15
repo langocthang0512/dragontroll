@@ -58,6 +58,8 @@ export class PrototypeGameplaySystem {
   checkpointPulse = 0;
   landingPulse = 0;
   private frameEvents: GameplayFrameEvents = { ...EMPTY_EVENTS };
+  private productionArea?: PrototypeArea;
+  private editorPlaytest = false;
 
   constructor(
     private readonly input: InputSystem,
@@ -71,6 +73,35 @@ export class PrototypeGameplaySystem {
 
   get canResume(): boolean {
     return this.lives.lives > 0;
+  }
+
+  get isEditorPlaytest(): boolean {
+    return this.editorPlaytest;
+  }
+
+  beginEditorPlaytest(area: PrototypeArea): void {
+    if (!this.editorPlaytest) this.productionArea = this.area;
+    this.editorPlaytest = true;
+    this.area = structuredClone(area);
+    this.lives.reset();
+    this.gold.restore(0, [], this.area.gold);
+    this.checkpoints.reset(this.area.spawn);
+    this.combat.interrupt();
+    this.movement.reset();
+    this.placeAtRespawn();
+    this.resetThreats();
+    this.respawn.startPlay();
+    this.state.patch({ levelCleared: false });
+    this.syncState("EDITOR PLAYTEST");
+  }
+
+  endEditorPlaytest(): void {
+    if (!this.editorPlaytest) return;
+    this.editorPlaytest = false;
+    this.area = this.productionArea ?? createMap1();
+    this.productionArea = undefined;
+    this.restoreSavedRun();
+    this.state.patch({ levelCleared: false });
   }
 
   get currentSection(): LevelSection {
@@ -220,6 +251,11 @@ export class PrototypeGameplaySystem {
   }
 
   private completeLevel(): void {
+    if (this.editorPlaytest) {
+      this.frameEvents.victory = true;
+      this.state.patch({ message: "EDITOR GOAL REACHED" });
+      return;
+    }
     this.saves.addUnlock("map-2-placeholder");
     this.persistRun();
     this.frameEvents.victory = true;
@@ -286,6 +322,7 @@ export class PrototypeGameplaySystem {
   }
 
   private persistRun(): void {
+    if (this.editorPlaytest) return;
     const active = this.checkpoints.active;
     const run: RunSave = {
       lives: this.lives.lives,

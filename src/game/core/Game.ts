@@ -1,4 +1,6 @@
 import { GAME_CONFIG } from "../../config/game";
+import { DeveloperToolkit } from "../../editor/DeveloperToolkit";
+import { areaToEditorMap } from "../../editor/maps/map1Document";
 import { AnimationController } from "../animation/AnimationController";
 import { AssetLoader } from "../assets/AssetLoader";
 import { assetManifest } from "../assets/manifest";
@@ -46,6 +48,7 @@ export class Game {
   private readonly worldRenderer: PrototypeWorldRenderer;
   private readonly visualUI: VisualUIRenderer;
   private readonly gameplay: PrototypeGameplaySystem;
+  private readonly editor: DeveloperToolkit;
   private readonly scenes = new SceneManager();
   private readonly debug = new DebugTools();
   private readonly performance = new PerformanceMonitor();
@@ -69,6 +72,18 @@ export class Game {
       this.saves,
       GAME_CONFIG.width,
     );
+    this.editor = new DeveloperToolkit(canvas.parentElement ?? document.body, areaToEditorMap(this.gameplay.area), {
+      play: (area) => {
+        this.gameplay.beginEditorPlaytest(area);
+        this.scenes.start("play");
+        this.renderer.canvas.focus();
+      },
+      stopPlay: () => {
+        this.gameplay.endEditorPlaytest();
+        this.scenes.start("menu");
+      },
+      exit: () => this.renderer.canvas.focus(),
+    });
 
     const navigate = (scene: string): void => this.navigate(scene);
     this.loadingScene = new LoadingScene(this.state, this.visualUI);
@@ -79,7 +94,7 @@ export class Game {
       this.worldRenderer,
       () => navigate("pause"),
       () => navigate("gameOver"),
-      () => navigate("victory"),
+      () => this.gameplay.isEditorPlaytest ? this.editor.open() : navigate("victory"),
     );
 
     this.scenes.register("loading", this.loadingScene);
@@ -89,6 +104,7 @@ export class Game {
       this.state,
       this.visualUI,
       navigate,
+      () => this.editor.open(),
     ));
     this.scenes.register("settings", new SettingsScene(this.input, this.state, this.visualUI, navigate));
     this.scenes.register("character", new CharacterSelectScene(this.input, this.saves, this.state, this.visualUI, navigate));
@@ -136,11 +152,17 @@ export class Game {
     this.scenes.dispose();
     this.animations.clear();
     this.assets.clear();
+    this.editor.dispose();
     this.input.dispose();
     this.unsubscribeState();
   }
 
   private update(deltaSeconds: number): void {
+    if (this.input.consumeEditorShortcut()) {
+      this.editor.toggle();
+      return;
+    }
+    if (this.editor.isOpen) return;
     if (this.input.consume("`")) this.debug.toggle();
     this.animations.update(deltaSeconds);
     if (this.transition.active) this.transition.update(deltaSeconds);

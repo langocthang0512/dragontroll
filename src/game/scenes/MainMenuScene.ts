@@ -11,6 +11,7 @@ export class MainMenuScene implements Scene {
     { id: "start", label: "START" },
     { id: "shop", label: "SHOP" },
     { id: "settings", label: "SETTINGS" },
+    { id: "editor", label: "DEVELOPER TOOLS" },
   ]);
   private readonly preview = new SpriteAnimator();
 
@@ -20,6 +21,7 @@ export class MainMenuScene implements Scene {
     private readonly state: GameStateManager,
     private readonly renderer: VisualUIRenderer,
     private readonly navigate: (scene: string) => void,
+    private readonly openEditor: () => void,
   ) {}
 
   enter(): void {
@@ -36,6 +38,7 @@ export class MainMenuScene implements Scene {
     if (action === "start") this.navigate(this.gameplay.startOrResume() ? "play" : "gameOver");
     if (action === "shop") this.navigate("shop");
     if (action === "settings") this.navigate("settings");
+    if (action === "editor") this.openEditor();
   }
 
   render(): void {

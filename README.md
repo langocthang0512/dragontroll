@@ -14,7 +14,7 @@ npm install
 npm run dev
 ```
 
-Vite prints the local development URL. Controls are `A`/`D` or arrow keys to move, `Space`/`W`/up arrow to jump, `J`/`X` to attack, and `Escape` to pause. Menus use arrows or `W`/`S`, `Enter`, and `Escape`. Press the backquote key to toggle diagnostics.
+Vite prints the local development URL. Controls are `A`/`D` or arrow keys to move, `Space`/`W`/up arrow to jump, `J`/`X` to attack, and `Escape` to pause. Menus use arrows or `W`/`S`, `Enter`, and `Escape`. Press the backquote key to toggle diagnostics. Open the content toolkit from the main menu or with `Ctrl+Shift+E`.
 
 ## Quality checks
 
@@ -50,6 +50,7 @@ Import the GitHub repository in Vercel. The included configuration uses `npm run
 - `src/game/gameplay`, `systems`: reusable movement, combat, progression, and respawn contracts
 - `src/game/debug`, `performance`: diagnostics
 - `src/game/checkpoints`: reusable respawn state
+- `src/editor`: internal asset browser, visual map editor, play-test bridge, storage, templates, and presets
 - `assets`: future source assets
 - `tools`: project validation scripts
 
@@ -58,3 +59,4 @@ See `docs/visual-pipeline.md` for atlas ownership, animation timing, visual rule
 See `docs/gameplay-systems.md` for the core loop, save schema, and extension rules.
 See `docs/map1-production.md` for Map 1 structure, enemy/hazard rules, progression, and shop behavior.
 See `docs/art-direction-recovery.md` for the recovered visual language, asset rules, and source studies.
+See `docs/editor-toolkit.md` for content authoring, play-test isolation, and map interchange.
